@@ -2,7 +2,13 @@ import cv2
 import numpy as np
 def nothing(x):
     pass
-cap = cv2.VideoCapture("video1.mp4")
+video_path = "video1.mp4"
+cap = cv2.VideoCapture(video_path)
+
+if not cap.isOpened():
+    print(f"Error: Could not open video file '{video_path}'. Please check the file path.")
+    exit()
+
 cv2.namedWindow("Tracking")
 cv2.createTrackbar("LH", "Tracking", 0, 179, nothing)
 cv2.createTrackbar("LS", "Tracking", 0, 255, nothing)
@@ -13,7 +19,7 @@ cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 while True:
     ret, img = cap.read()
     if not ret:
-        print("Video has ended.")
+        print("Warning: Unable to read frame or video has ended.")
         break
     img = cv2.resize(img, (512, 512))
     l_h = cv2.getTrackbarPos("LH", "Tracking")
