@@ -42,6 +42,9 @@ cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 
 while True:
+    if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
+        print("Tracking window closed. Exiting...")
+        break
 
     l_h = cv2.getTrackbarPos("LH", "Tracking")
     l_s = cv2.getTrackbarPos("LS", "Tracking")

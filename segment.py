@@ -36,6 +36,9 @@ cv2.createTrackbar("UH", "Tracking", 179, 179, nothing)
 cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 while True:
+    if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
+        print("Tracking window closed. Exiting...")
+        break
     ret, img = cap.read()
     if not ret:
         print("Warning: Unable to read frame or video has ended.")
