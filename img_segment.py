@@ -1,19 +1,39 @@
 import cv2
 import numpy as np
+import os
+import argparse
 
 def nothing(x):
     pass
 
-image_path = "image1.webp"
+parser = argparse.ArgumentParser(description="Segmentation of an image file.")
+parser.add_argument("--image", type=str, help="Path to the image file.")
+args = parser.parse_args()
+
+image_path = args.image if args.image else input("Enter the image file path: ").strip()
+
+if not os.path.exists(image_path):
+    print(f"Error: File '{image_path}' not found. Please check the path.")
+    exit()
+
 img = cv2.imread(image_path)
 
 if img is None:
-    print(f"Error: Could not open image file '{image_path}'. Please check the file path.")
+    print(f"Error: Could not open image file '{image_path}'.")
     exit()
 
 img = cv2.resize(img, (512, 512))
 
 cv2.namedWindow("Tracking")
+cv2.namedWindow("Original")
+cv2.namedWindow("Mask")
+cv2.namedWindow("Result")
+
+cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 1)
+cv2.setWindowProperty("Original", cv2.WND_PROP_TOPMOST, 1)
+cv2.setWindowProperty("Mask", cv2.WND_PROP_TOPMOST, 1)
+cv2.setWindowProperty("Result", cv2.WND_PROP_TOPMOST, 1)
+
 cv2.createTrackbar("LH", "Tracking", 0, 179, nothing)
 cv2.createTrackbar("LS", "Tracking", 0, 255, nothing)
 cv2.createTrackbar("LV", "Tracking", 0, 255, nothing)
@@ -22,6 +42,9 @@ cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 
 while True:
+    if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
+        print("Tracking window closed. Exiting...")
+        break
 
     l_h = cv2.getTrackbarPos("LH", "Tracking")
     l_s = cv2.getTrackbarPos("LS", "Tracking")
