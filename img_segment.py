@@ -4,7 +4,13 @@ import numpy as np
 def nothing(x):
     pass
 
-img = cv2.imread("image1.webp")
+image_path = "image1.webp"
+img = cv2.imread(image_path)
+
+if img is None:
+    print(f"Error: Could not open image file '{image_path}'. Please check the file path.")
+    exit()
+
 img = cv2.resize(img, (512, 512))
 
 cv2.namedWindow("Tracking")
