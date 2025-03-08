@@ -11,11 +11,24 @@ cv2.createTrackbar("B","Colour Segmentation",0,255,nothing)
 while(True):
     if cv2.getWindowProperty("Colour Segmentation", cv2.WND_PROP_VISIBLE) < 1:
         break
-    cv2.imshow('Colour Segmentation',img)
+
     r=cv2.getTrackbarPos("R","Colour Segmentation")
     g=cv2.getTrackbarPos("G","Colour Segmentation")
     b=cv2.getTrackbarPos("B","Colour Segmentation")
     img[:]=[b,g,r]
-    if cv2.waitKey(1) & 0xFF == 27:
+
+    color_img = np.full((300, 512, 3), (b, g, r), dtype=np.uint8)
+
+    text = f"R={r}, G={g}, B={b}"
+    cv2.putText(img,text,(20,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
+
+    cv2.imshow("Colour Segmentation", img)
+
+    key = cv2.waitKey(1) & 0xFF
+    if key == 27:
         break
+    elif key == ord('s'):
+        cv2.imwrite("selected_color.png",color_img)
+        print("Saved current color as 'selected_color.png'")
+
 cv2.destroyAllWindows()
