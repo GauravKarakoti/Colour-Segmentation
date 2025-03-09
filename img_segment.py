@@ -37,7 +37,7 @@ cv2.setWindowProperty("Result", cv2.WND_PROP_TOPMOST, 1)
 cv2.createTrackbar("LH", "Tracking", 0, 179, nothing)
 cv2.createTrackbar("LS", "Tracking", 0, 255, nothing)
 cv2.createTrackbar("LV", "Tracking", 0, 255, nothing)
-cv2.createTrackbar("UH", "Tracking", 225, 225, nothing)
+cv2.createTrackbar("UH", "Tracking", 179, 179, nothing)
 cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 
