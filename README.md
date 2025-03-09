@@ -42,6 +42,9 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
   <a href="https://www.python.org/">
     <img src="https://img.shields.io/badge/Python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" alt="Python">
   </a>
+  <a href="https://opencv.org/">
+    <img src="https://img.shields.io/badge/CV-Computer%20Vision-orange?style=for-the-badge&logo=opencv&logoColor=white" alt="Computer Vision">
+  </a>
 </center>
 
 
