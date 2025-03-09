@@ -1,15 +1,8 @@
 # Color Segmentation Tools
 
-A collection of OpenCV-based tools for color-based image and video segmentation.
 
 [![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/Apertre-2-0)
 
-
-<tr>
-<td align="center">
-<a href="https://s2apertre.resourcio.in"><img src="https://s2apertre.resourcio.in/Logo_primary.svg" height="140px" width="180px" alt="Apertre 2025"></a><br><sub><b>Apertre 2.0 2k25</b></sub>
-</td>
-</tr>
 
 <table align="center">
     <thead align="center">
@@ -33,6 +26,11 @@ A collection of OpenCV-based tools for color-based image and video segmentation.
 </table>
 </div>
 <h3> <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Man%20Technologist%20Light%20Skin%20Tone.png" width="50px"> Featured In</h3>
+<tr>
+<td align="center">
+<a href="https://s2apertre.resourcio.in"><img src="https://s2apertre.resourcio.in/Logo_primary.svg" height="140px" width="180px" alt="Apertre 2025"></a><br><sub><b>Apertre 2.0 2k25</b></sub>
+</td>
+</tr>
 
 
 <h3><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Writing%20Hand%20Light%20Skin%20Tone.png" alt="Rocket" width="40" height="40" />Project Overview</h3>
@@ -50,14 +48,13 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
 <br><br>
 
 ## Prerequisites
-<p style="font-family:var(--ff-philosopher);">
-- Python 3.x
-- OpenCV (`pip install opencv-python`)
-- NumPy (`pip install numpy`)</p>
+<p style="font-family:var(--ff-philosopher);">- Python 3.x</p>
+<p>- OpenCV (`pip install opencv-python`)</p>
+<p>- NumPy (`pip install numpy`)</p>
 
 <br><br>
 
-## <p style="font-size:3rem;">img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Man%20Technologist%20Light%20Skin%20Tone.png" width="50px"> Get Started</p>
+## <p style="font-size:3rem;"><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Man%20Technologist%20Light%20Skin%20Tone.png" width="50px"> Get Started</p>
 
 ### Installation
 
@@ -137,7 +134,7 @@ python segment.py
 <table>
 <tr>
 <td align="center">
-<a href="https://github.com/GauravKarakoti"><img src="c:\Users\Aastha\AppData\Local\Temp\180496085.jpg" height="140px" width="140px" alt="Gaurav Karakoti "></a><br><sub><b>Gaurav Karakoti </b><br><a href="www.linkedin.com/in/gaurav-karakoti-248960302"><img src="https://github-production-user-asset-6210df.s3.amazonaws.com/73993775/278833250-adb040ea-e3ef-446e-bcd4-3e8d7d4c0176.png" width="45px" height="45px"></a></sub>
+<a href="https://github.com/GauravKarakoti"><img src="https://avatars.githubusercontent.com/u/180496085?v=4" height="140px" width="140px" alt="Gaurav Karakoti "></a><br><sub><b>Gaurav Karakoti </b><br><a href="https://www.linkedin.com/in/gaurav-karakoti-248960302/"><img src="https://github-production-user-asset-6210df.s3.amazonaws.com/73993775/278833250-adb040ea-e3ef-446e-bcd4-3e8d7d4c0176.png" width="45px" height="45px"></a></sub>
 </td>
 </tr>
 </table>
