@@ -31,7 +31,8 @@ while(True):
     if key == 27:
         break
     elif key == ord('s'):
+        cv2.imwrite("selected_color_with_text.png",img)
         cv2.imwrite("selected_color.png",color_img)
-        print("Saved current color as 'selected_color.png'")
+        print("Saved: 'selected_color.png' (without text) & 'selected_color_with_text.png' (with text)")
 
 cv2.destroyAllWindows()
