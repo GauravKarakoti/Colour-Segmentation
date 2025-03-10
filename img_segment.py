@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 import argparse
-from segmentation_utils import load_image, create_trackbars, get_trackbar_values, apply_mask, display_results, create_display_windows
+from segmentation_utils import *
 
 def nothing(x):
     pass
