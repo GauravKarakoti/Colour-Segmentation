@@ -66,6 +66,7 @@ def create_display_windows(type):
     if type == "img":
         pass
     else:
+        window_names.remove("Original")
         window_names += ["Frame"]
     for window in window_names:
         cv2.namedWindow(window)
