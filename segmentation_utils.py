@@ -51,7 +51,24 @@ def get_trackbar_values(window_name="Tracking"):
     u_h = cv2.getTrackbarPos("UH", window_name)
     u_s = cv2.getTrackbarPos("US", window_name)
     u_v = cv2.getTrackbarPos("UV", window_name)
-    
+
+    original_values = (l_h, l_s, l_v, u_h, u_s, u_v)
+
+    l_h = min(l_h, u_h)
+    l_s = min(l_s, u_s)
+    l_v = min(l_v, u_v)
+    u_h = max(original_values[0], u_h)
+    u_s = max(original_values[1], u_s)
+    u_v = max(original_values[2], u_v)
+
+    if (l_h, l_s, l_v, u_h, u_s, u_v) != original_values:
+        cv2.setTrackbarPos("LH", window_name, l_h)
+        cv2.setTrackbarPos("LS", window_name, l_s)
+        cv2.setTrackbarPos("LV", window_name, l_v)
+        cv2.setTrackbarPos("UH", window_name, u_h)
+        cv2.setTrackbarPos("US", window_name, u_s)
+        cv2.setTrackbarPos("UV", window_name, u_v)
+        
     return np.array([l_h, l_s, l_v]), np.array([u_h, u_s, u_v])
 
 def apply_mask(image, lower_bound, upper_bound):
