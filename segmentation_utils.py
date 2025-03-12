@@ -3,42 +3,44 @@ import numpy as np
 import os
 
 def nothing(x):
+    """Callback function for trackbars (does nothing)."""
     pass
 
 def load_image(image_path):
     """Load and resize image, return image or None if error occurs."""
     if not os.path.exists(image_path):
-        print(f"Error: File '{image_path}' not found.")
-        return None
+        raise FileNotFoundError(f"Error: File '{image_path}' not found.")
 
     img = cv2.imread(image_path)
     if img is None:
-        print(f"Error: Could not open image file '{image_path}'.")
-        return None
+        raise ValueError(f"Error: Could not open image file '{image_path}'.")
 
     return cv2.resize(img, (512, 512))
 
 def load_video(video_path):
-    """Load video file and return video capture object."""
+    """Load a video file and return a VideoCapture object. Raises an error if the file is missing."""
     if not os.path.exists(video_path):
-        print(f"Error: File '{video_path}' not found.")
-        return None
+        raise FileNotFoundError(f"Error: File '{video_path}' not found.")
 
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
-        print(f"Error: Could not open video file '{video_path}'.")
-        return None
+        raise ValueError(f"Error: Could not open video file '{video_path}'.")
 
     return cap
+
+def release_video(cap):
+    """Safely release the VideoCapture object."""
+    if cap is not None and cap.isOpened():
+        cap.release()
 
 def create_trackbars(window_name="Tracking"):
     """Create HSV trackbars for segmentation."""
     cv2.namedWindow(window_name)
     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
-    
-    cv2.createTrackbar("LH", window_name, 0, 179, nothing)
-    cv2.createTrackbar("LS", window_name, 0, 255, nothing)
-    cv2.createTrackbar("LV", window_name, 0, 255, nothing)
+
+    cv2.createTrackbar("LH", window_name, 30, 179, nothing)
+    cv2.createTrackbar("LS", window_name, 50, 255, nothing)
+    cv2.createTrackbar("LV", window_name, 50, 255, nothing)
     cv2.createTrackbar("UH", window_name, 179, 179, nothing)
     cv2.createTrackbar("US", window_name, 255, 255, nothing)
     cv2.createTrackbar("UV", window_name, 255, 255, nothing)
@@ -52,48 +54,63 @@ def get_trackbar_values(window_name="Tracking"):
     u_s = cv2.getTrackbarPos("US", window_name)
     u_v = cv2.getTrackbarPos("UV", window_name)
 
-    original_values = (l_h, l_s, l_v, u_h, u_s, u_v)
+    # Ensure lower bound is never greater than upper bound
+    lower_bound = np.array([min(l_h, u_h), min(l_s, u_s), min(l_v, u_v)])
+    upper_bound = np.array([max(l_h, u_h), max(l_s, u_s), max(l_v, u_v)])
 
-    l_h = min(l_h, u_h)
-    l_s = min(l_s, u_s)
-    l_v = min(l_v, u_v)
-    u_h = max(original_values[0], u_h)
-    u_s = max(original_values[1], u_s)
-    u_v = max(original_values[2], u_v)
-
-    if (l_h, l_s, l_v, u_h, u_s, u_v) != original_values:
-        cv2.setTrackbarPos("LH", window_name, l_h)
-        cv2.setTrackbarPos("LS", window_name, l_s)
-        cv2.setTrackbarPos("LV", window_name, l_v)
-        cv2.setTrackbarPos("UH", window_name, u_h)
-        cv2.setTrackbarPos("US", window_name, u_s)
-        cv2.setTrackbarPos("UV", window_name, u_v)
-        
-    return np.array([l_h, l_s, l_v]), np.array([u_h, u_s, u_v])
+    return lower_bound, upper_bound
 
 def apply_mask(image, lower_bound, upper_bound):
-    """Apply mask and return masked result."""
-    mask = cv2.inRange(image, lower_bound, upper_bound)
+    """Apply a mask to segment colors in the HSV range with noise reduction."""
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)  
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel) 
     result = cv2.bitwise_and(image, image, mask=mask)
     return mask, result
 
-def create_display_windows(type):
-    """Create windows for displaying images and keep them always on top."""
-    window_names = ["Original", "Mask", "Result"]
-    if type == "img":
-        pass
+def create_display_windows(input_type):
+    """
+    Create windows for displaying images and ensure they stay on top.
+    
+    Args:
+    - input_type (str): "img" for image processing, "video" for real-time video.
+
+    Raises:
+    - ValueError: If the input_type is not "img" or "video".
+    """
+    if input_type not in ["img", "video"]:
+        raise ValueError("Invalid input_type. Use 'img' for image or 'video' for real-time processing.")
+
+    window_names = ["Mask", "Result"]
+    if input_type == "img":
+        window_names.append("Original")
     else:
-        window_names.remove("Original")
-        window_names += ["Frame"]
+        window_names.append("Frame")
+
     for window in window_names:
         cv2.namedWindow(window)
-        cv2.setWindowProperty(window, cv2.WND_PROP_TOPMOST, 1)  
+        cv2.setWindowProperty(window, cv2.WND_PROP_TOPMOST, 1)
 
-def display_results(original, mask, result,frame):
-    """Display original, mask, and result images."""
+def display_results(original=None, mask=None, result=None, frame=None):
+    """
+    Display the results in OpenCV windows.
+
+    Args:
+    - original: The original image (None for video mode).
+    - mask: The binary mask of the detected region.
+    - result: The final segmented output.
+    - frame: The current video frame (None for image mode).
+    """
     if frame is not None:
         cv2.imshow("Frame", frame)
-    else:
+    elif original is not None:
         cv2.imshow("Original", original)
-    cv2.imshow("Mask", mask)
-    cv2.imshow("Result", result)
+
+    if mask is not None:
+        cv2.imshow("Mask", mask)
+
+    if result is not None:
+        cv2.imshow("Result", result)
