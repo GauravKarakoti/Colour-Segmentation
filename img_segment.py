@@ -1,27 +1,22 @@
 import cv2
-import numpy as np
-import os
 import argparse
 from segmentation_utils import *
-
-def nothing(x):
-    pass
 
 parser = argparse.ArgumentParser(description="Segmentation of an image file.")
 parser.add_argument("--image", type=str, help="Path to the image file.")
 args = parser.parse_args()
 
 image_path = args.image if args.image else input("Enter the image file path: ").strip()
-img = load_image(image_path)
-
-if img is None:
-    exit()
+try:
+    img = load_image(image_path)
+except FileNotFoundError as e:
+    print(e)
+    exit(1)
 
 # Create trackbars
 create_trackbars("Tracking")
 
-# Create all necessary windows
-create_display_windows(type="img")
+create_display_windows("img")
 
 while True:
     if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
@@ -30,8 +25,7 @@ while True:
 
     lower, upper = get_trackbar_values("Tracking")
     mask, result = apply_mask(img, lower, upper)
-    
-    display_results(img, mask, result, None)
+    display_results(original=img, mask=mask, result=result)
 
     if cv2.waitKey(1) == 27:
         break
