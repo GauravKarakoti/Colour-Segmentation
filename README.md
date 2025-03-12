@@ -25,17 +25,23 @@
     </tbody>
 </table>
 </div>
+
+---
+
 <h3> <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Man%20Technologist%20Light%20Skin%20Tone.png" width="50px"> Featured In</h3>
 <tr>
 <td align="center">
-<a href="https://s2apertre.resourcio.in"><img src="https://s2apertre.resourcio.in/Logo_primary.svg" height="140px" width="180px" alt="Apertre 2025"></a><br><sub><b>Apertre 2.0 2k25</b></sub>
+<a href="https://s2apertre.resourcio.in"><img src="https://s2apertre.resourcio.in/Logo_primary.svg" height="140px" width="180px" alt="Apertre 2025"></a>
 </td>
 </tr>
 
+---
 
 <h3><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Writing%20Hand%20Light%20Skin%20Tone.png" alt="Rocket" width="40" height="40" />Project Overview</h3>
 <p style="font-family:var(--ff-philosopher);">
 A suite of OpenCV-based tools for color-driven segmentation in images and videos</p>
+
+---
 
 ## <p style="font-family:var(--ff-philosopher);font-size:3rem;text-align:center;"><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/High%20Voltage.png" alt="High Voltage" width="40" height="40" />Tech Stack</p>
 <center>
@@ -48,14 +54,18 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
 </center>
 
 
-<br><br>
+<br><be>
+
+---
 
 ## Prerequisites
 <p style="font-family:var(--ff-philosopher);">- Python 3.x</p>
 <p>- OpenCV (`pip install opencv-python`)</p>
 <p>- NumPy (`pip install numpy`)</p>
 
-<br><br>
+<br><be>
+
+---
 
 ## <p style="font-size:3rem;"><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Man%20Technologist%20Light%20Skin%20Tone.png" width="50px"> Get Started</p>
 
@@ -105,7 +115,9 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
    ```
 9. **Create a Pull Request:**
    Go to the GitHub page of your forked repository. You should see a prompt to create a pull request (PR). Click on it, compare the changes, and create the PR.
-<br><br>
+<br><be>
+
+---
 
 ## Usage
 ### Image Segmentation
@@ -131,6 +143,7 @@ python segment.py
 - Ensure `video1.mp4` exists or modify video path
 - Press ESC to exit
 
+---
 
 <h2>Project Admin:</h2>
 
@@ -142,6 +155,7 @@ python segment.py
 </tr>
 </table>
 
+---
 
 <div align="center">
   <h2 style="font-size:3rem;">Our Contributors <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Red%20Heart.png" alt="Red Heart" width="40" height="40" /></h2>
