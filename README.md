@@ -88,7 +88,7 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
     ``` 
 3. **Add a remote upstream:**
    ```bash
-   git remote add upstream https://github.com/Anjaliavv51/Matrubodhah
+   git remote add upstream https://github.com/GauravKarakoti/Colour-Segmentation
    ```
 4. **Create a new branch:**
    Create a new branch for your changes. Run the following command in your terminal.
