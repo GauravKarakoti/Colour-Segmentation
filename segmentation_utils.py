@@ -6,6 +6,23 @@ def nothing(x):
     """Callback function for trackbars (does nothing)."""
     pass
 
+def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_AREA):
+    """Resize image while maintaining aspect ratio."""
+    dim = None
+    (h, w) = image.shape[:2]
+
+    if width is None and height is None:
+        return image
+
+    if width is None:
+        r = height / float(h)
+        dim = (int(w * r), height)
+    else:
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    return cv2.resize(image, dim, interpolation=inter)
+
 def load_image(image_path):
     """Load and resize image, return image or None if error occurs."""
     if not os.path.exists(image_path):
@@ -15,7 +32,7 @@ def load_image(image_path):
     if img is None:
         raise ValueError(f"Error: Could not open image file '{image_path}'.")
 
-    return cv2.resize(img, (512, 512))
+    return resize_with_aspect_ratio(img, width=512)
 
 def load_video(video_path):
     """Load a video file and return a VideoCapture object. Raises an error if the file is missing."""
