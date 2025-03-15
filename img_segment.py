@@ -13,7 +13,7 @@ image_path = args.image if args.image else input("Enter the image file path: ").
 # Try to load the image, handle errors if the file is not found
 try:
     img = load_image(image_path)  # Load image using a function from segmentation_utils
-except FileNotFoundError as e:
+except ( FileNotFoundError, ValueError, PermissionError, RuntimeError ) as e:
     print(e)  # Print error message if file not found
     exit(1)  # Exit the program
 

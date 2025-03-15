@@ -6,6 +6,15 @@ def nothing(x):
     """Callback function for trackbars (does nothing)."""
     pass
 
+def check_file_access(file_path):
+    """Check if the file exists and is accessible."""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Error: File '{file_path}' does not exist.")
+    if not os.path.isfile(file_path):
+        raise ValueError(f"Error: '{file_path}' is not a valid file.")
+    if not os.access(file_path, os.R_OK):
+        raise PermissionError(f"Error: '{file_path}' is not readable or access is denied.")
+
 def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_AREA):
     """Resize image while maintaining aspect ratio."""
     dim = None
@@ -25,25 +34,37 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
 
 def load_image(image_path):
     """Load and resize image, return image or None if error occurs."""
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Error: File '{image_path}' not found.")
+    check_file_access(image_path)
 
-    img = cv2.imread(image_path)
-    if img is None:
-        raise ValueError(f"Error: Could not open image file '{image_path}'.")
+    valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp')
+    if not image_path.lower().endswith(valid_extensions):
+        raise ValueError(f"Error: '{image_path}' is not an image file. Please provide a valid image format.")
 
-    return resize_with_aspect_ratio(img, width=512)
+    try:
+        img = cv2.imread(image_path)
+        if img is None or img.size == 0:
+            raise ValueError(f"Error: Unable to load image '{image_path}'. It may be corrupted or unsupported.")
+            
+        return resize_with_aspect_ratio(img, width=512)
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while loading image '{image_path}': {str(e)}")
 
 def load_video(video_path):
     """Load a video file and return a VideoCapture object. Raises an error if the file is missing."""
-    if not os.path.exists(video_path):
-        raise FileNotFoundError(f"Error: File '{video_path}' not found.")
+    check_file_access(video_path)
 
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        raise ValueError(f"Error: Could not open video file '{video_path}'.")
+    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')
+    if not video_path.lower().endswith(valid_video_extensions):
+        raise ValueError(f"Error: '{video_path}' is not a valid video file. Please provide a supported video format.")
 
-    return cap
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            raise ValueError(f"Error: Unable to open video file '{video_path}'. It may be corrupted or unsupported.")
+
+        return cap
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while loading video '{video_path}': {str(e)}")
 
 def release_video(cap):
     """Safely release the VideoCapture object."""
