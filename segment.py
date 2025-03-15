@@ -13,7 +13,7 @@ video_path = args.video if args.video else input("Enter the video file path: ").
 # Try to load the video, handle errors if the file is not found or can't be opened
 try:
     cap = load_video(video_path)  # Load video using a function from segmentation_utils
-except Exception as e:
+except (FileNotFoundError, ValueError, PermissionError, RuntimeError) as e:
     print(f"Error: {e}")  # Print error message if unable to open video
     exit(1)  # Exit the program
 
