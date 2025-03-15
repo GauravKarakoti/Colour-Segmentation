@@ -16,10 +16,10 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
 
     if width is None:
         r = height / float(h)
-        dim = (int(w * r), height)
+        dim = (int(w * r), int(height))
     else:
         r = width / float(w)
-        dim = (width, int(h * r))
+        dim = (int(width), int(h * r))
 
     return cv2.resize(image, dim, interpolation=inter)
 
