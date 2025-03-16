@@ -38,12 +38,18 @@ while True:
 
     # Resize the frame to 512x512 for consistent processing
     frame = cv2.resize(frame, (512, 512))
-    
+
     # Get the current values of the trackbars (lower and upper bounds for segmentation)
     lower_bound, upper_bound = get_trackbar_values("Tracking")
     
-    # Apply segmentation mask using the obtained lower and upper bounds
-    mask, result = apply_mask(frame, lower_bound, upper_bound)
+    # Handle hue wrapping if lower hue is greater than upper hue
+    if isinstance(upper_bound, tuple):  # Handle hue wrapping case
+        mask1, result1 = apply_mask(frame, lower_bound, upper_bound[0])
+        mask2, result2 = apply_mask(frame, lower_bound, upper_bound[1])
+        mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
+        result = cv2.bitwise_or(result1, result2)  # Combine the results
+    else:
+        mask, result = apply_mask(frame, lower_bound, upper_bound)
     
     # Display the original frame, mask, and result side by side
     display_results(frame=frame, mask=mask, result=result)
