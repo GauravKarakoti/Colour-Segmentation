@@ -1,5 +1,7 @@
 .venv
 venv
-selected_color.png
-selected_color_with_text.png
+rgb_palette_with_text.png
+rgb_palette.png
+hsv_palette_with_text.png
+hsv_palette.png
 __pycache__
