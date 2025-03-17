@@ -3,29 +3,46 @@ import numpy as np
 from tkinter import Tk, simpledialog
 
 def nothing(x):
-    """Callback function for trackbars (unused but required)."""
     pass
 
-def create_color_palette_window():
-    """Creates the OpenCV window and trackbars for color selection."""
-    cv2.namedWindow("Colour Palette")
-    cv2.createTrackbar("R", "Colour Palette", 0, 255, nothing)
-    cv2.createTrackbar("G", "Colour Palette", 0, 255, nothing)
-    cv2.createTrackbar("B", "Colour Palette", 0, 255, nothing)
+def create_hsv_palette_window():
+    cv2.namedWindow("HSV Palette")
+    cv2.createTrackbar("LH", "HSV Palette", 0, 179, nothing)
+    cv2.createTrackbar("LS", "HSV Palette", 50, 255, nothing)
+    cv2.createTrackbar("LV", "HSV Palette", 50, 255, nothing)
+    cv2.createTrackbar("UH", "HSV Palette", 179, 179, nothing)
+    cv2.createTrackbar("US", "HSV Palette", 255, 255, nothing)
+    cv2.createTrackbar("UV", "HSV Palette", 255, 255, nothing)
 
-def get_trackbar_values():
-    """Retrieves the current values from the RGB trackbars."""
-    r = cv2.getTrackbarPos("R", "Colour Palette")
-    g = cv2.getTrackbarPos("G", "Colour Palette")
-    b = cv2.getTrackbarPos("B", "Colour Palette")
-    return r, g, b
+def create_rgb_palette_window():
+    cv2.namedWindow("RGB Palette")
+    cv2.createTrackbar("R", "RGB Palette", 0, 255, nothing)
+    cv2.createTrackbar("G", "RGB Palette", 0, 255, nothing)
+    cv2.createTrackbar("B", "RGB Palette", 0, 255, nothing)
 
-def calculate_luminance(r, g, b):
-    """Calculates brightness (luminance) using a standard formula."""
-    return 0.299 * r + 0.587 * g + 0.114 * b
+def get_hsv_values():
+    l_h = cv2.getTrackbarPos("LH", "HSV Palette")
+    l_s = cv2.getTrackbarPos("LS", "HSV Palette")
+    l_v = cv2.getTrackbarPos("LV", "HSV Palette")
+    u_h = cv2.getTrackbarPos("UH", "HSV Palette")
+    u_s = cv2.getTrackbarPos("US", "HSV Palette")
+    u_v = cv2.getTrackbarPos("UV", "HSV Palette")
+    return (l_h, l_s, l_v), (u_h, u_s, u_v)
 
-def update_display(img, r, g, b):
-    """Updates the display image with selected color and text information."""
+def get_rgb_values():
+    r = cv2.getTrackbarPos("R", "RGB Palette")
+    g = cv2.getTrackbarPos("G", "RGB Palette")
+    b = cv2.getTrackbarPos("B", "RGB Palette")
+    return (r, g, b)
+
+def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
+    img[:] = [l_h, l_s, l_v]
+    text_color = (255, 255, 255)
+    cv2.putText(img, f"LH={l_h}, LS={l_s}, LV={l_v}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, text_color, 2)
+    cv2.putText(img, f"UH={u_h}, US={u_s}, UV={u_v}", (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, text_color, 2)
+    cv2.putText(img, "Press 'S' to save | Press 'ESC' to exit", (20, 280), cv2.FONT_HERSHEY_SIMPLEX, 0.7, text_color, 1)
+
+def display_rgb_palette(img, r, g, b):
     img[:] = [b, g, r]
     luminance = calculate_luminance(r, g, b)
     text_color = (0, 0, 0) if luminance > 127 else (255, 255, 255)
@@ -78,6 +95,23 @@ def save_images(img, color_img):
     except (cv2.error, IOError) as e:
         print(f"Error saving images: {e}")
 
+    text_color = (255, 255, 255)
+    cv2.putText(img, f"R={r}, G={g}, B={b}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, text_color, 2)
+    cv2.putText(img, "Press 'S' to save | Press 'ESC' to exit", (20, 280), cv2.FONT_HERSHEY_SIMPLEX, 0.7, text_color, 1)
+
+def save_images(img_hsv, img_rgb):
+    cv2.imwrite("hsv_palette_with_text.png", img_hsv)
+    cv2.imwrite("rgb_palette_with_text.png", img_rgb)
+    
+    img_hsv_plain = np.zeros_like(img_hsv)
+    img_rgb_plain = np.zeros_like(img_rgb)
+    img_hsv_plain[:] = img_hsv[0, 0]
+    img_rgb_plain[:] = img_rgb[0, 0]
+    
+    cv2.imwrite("hsv_palette.png", img_hsv_plain)
+    cv2.imwrite("rgb_palette.png", img_rgb_plain)
+    print("Saved: 'hsv_palette_with_text.png', 'rgb_palette_with_text.png', 'hsv_palette.png', and 'rgb_palette.png'")
+
 def reset_trackbar_values():
     """Resets trackbars to 0."""
     cv2.setTrackbarPos("R", "Colour Palette", 0)
@@ -117,9 +151,17 @@ def main():
     img = np.zeros((300, 750, 3), np.uint8)  
     create_color_palette_window()
 
+    img_hsv = np.zeros((300, 512, 3), np.uint8)
+    img_rgb = np.zeros((300, 512, 3), np.uint8)
+    create_hsv_palette_window()
+    create_rgb_palette_window()
+    
     while True:
-        if cv2.getWindowProperty("Colour Palette", cv2.WND_PROP_VISIBLE) < 1:
-            break
+        (l_h, l_s, l_v), (u_h, u_s, u_v) = get_hsv_values()
+        r, g, b = get_rgb_values()
+        
+        display_hsv_palette(img_hsv, l_h, l_s, l_v, u_h, u_s, u_v)
+        display_rgb_palette(img_rgb, r, g, b)
         
         r, g, b = get_trackbar_values()
         update_display(img, r, g, b)
@@ -136,6 +178,15 @@ def main():
         elif key == ord('i') or key == ord('I'):  
             get_rgb_input()
 
+        cv2.imshow("HSV Palette", img_hsv)
+        cv2.imshow("RGB Palette", img_rgb)
+        
+        key = cv2.waitKey(1) & 0xFF
+        if key == 27:
+            break
+        elif key == ord('s'):
+            save_images(img_hsv, img_rgb)
+    
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
