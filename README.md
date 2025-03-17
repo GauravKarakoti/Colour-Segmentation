@@ -118,6 +118,40 @@ A suite of OpenCV-based tools for color-driven segmentation in images and videos
 <br><be>
 
 ---
+### Running Tests Locally
+Before submitting a PR, please run the following checks locally:
+
+```bash
+# Install development dependencies
+pip install -r requirements.txt
+pip install flake8 black pytest
+
+# Run linting
+flake8 .
+
+# Run formatting check
+black --check .
+
+# Run tests
+pytest
+```
+
+
+### Release Process
+We follow [Semantic Versioning](https://semver.org/) for releases:
+- **Major version**: Incompatible API changes
+- **Minor version**: New functionality in a backward-compatible manner
+- **Patch version**: Backward-compatible bug fixes
+
+Release tags are created from the `main` branch after a successful merge from `develop`.
+
+### Continuous Integration
+Our CI pipeline automatically runs on every push and PR, checking:
+- Code formatting with `black`
+- Linting with `flake8`
+- Unit tests with `pytest`
+- Script verification to ensure all scripts run without errors
+
 
 ## Usage
 ### Image Segmentation
