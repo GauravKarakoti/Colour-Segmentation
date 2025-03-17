@@ -76,7 +76,7 @@ def create_trackbars(window_name="Tracking"):
     cv2.namedWindow(window_name)
     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
 
-    cv2.createTrackbar("LH", window_name, 30, 179, nothing)
+    cv2.createTrackbar("LH", window_name, 0, 179, nothing)
     cv2.createTrackbar("LS", window_name, 50, 255, nothing)
     cv2.createTrackbar("LV", window_name, 50, 255, nothing)
     cv2.createTrackbar("UH", window_name, 179, 179, nothing)
