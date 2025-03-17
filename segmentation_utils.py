@@ -122,11 +122,7 @@ def create_display_windows(input_type):
     if input_type not in ["img", "video"]:
         raise ValueError("Invalid input_type. Use 'img' for image or 'video' for real-time processing.")
 
-    window_names = ["Mask", "Result"]
-    if input_type == "img":
-        window_names.append("Original")
-    else:
-        window_names.append("Frame")
+    window_names = ["Mask", "Result", "Original"]
 
     for window in window_names:
         cv2.namedWindow(window)
@@ -143,7 +139,7 @@ def display_results(original=None, mask=None, result=None, frame=None):
     - frame: The current video frame (None for image mode).
     """
     if frame is not None:
-        cv2.imshow("Frame", frame)
+        cv2.imshow("Original", frame)
     elif original is not None:
         cv2.imshow("Original", original)
 
