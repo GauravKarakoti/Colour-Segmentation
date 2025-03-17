@@ -2,6 +2,7 @@ import cv2
 import argparse
 import numpy as np
 from segmentation_utils import *  # Assuming this imports required utilities
+import os
 
 # Initialize argument parser to allow users to provide a video path via command line
 parser = argparse.ArgumentParser(description="Segmentation of a video file.")
@@ -14,6 +15,8 @@ video_path = args.video if args.video else input("Enter the video file path: ").
 # Load the video using the utility function
 try:
     cap = load_video(video_path)  # Open the video file
+    if not cap.isOpened():
+        raise ValueError("Error opening video file.")
 except Exception as e:
     print(f"Error loading video: {str(e)}")
     exit(1)
@@ -72,14 +75,25 @@ while True:
     kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
 
+    # Convert mask to 3 channels before writing to video
+    mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+
+    # Get frame dimensions
+    frame_height, frame_width = mask.shape[:2]
+
+    # Resize mask and result to match the original frame dimensions
+    mask_3ch = cv2.resize(mask_3ch, (frame_width, frame_height))
+    result = cv2.resize(result, (frame_width, frame_height))
+
     # Display the original frame in the "Original" window
     cv2.imshow("Original", frame)
 
     # Display the mask and result side by side in the "Tracking" window
     display_results(frame=frame, mask=mask, result=result)
 
-    # Wait for 1ms and check if the ESC key (27) is pressed to exit the loop
-    if cv2.waitKey(1) == 27:
+    # Wait for 1ms and check if the ESC key (27) or 's' key is pressed
+    key = cv2.waitKey(1)
+    if key == 27:  # ESC key
         break
 
 # Release video capture and destroy all OpenCV windows
