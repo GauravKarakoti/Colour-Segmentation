@@ -78,9 +78,14 @@ while True:
     # Display results
     display_results(original=img_resized, mask=mask, result=result)
 
-    # Exit if ESC key is pressed
-    if cv2.waitKey(1) == 27:
+    # Handle keypress events
+    key = cv2.waitKey(1)
+    if key == 27:  # ESC key
         break
+    elif key == ord('s'):  # 's' key to save mask and result
+        cv2.imwrite("mask.png", mask)
+        cv2.imwrite("result.png", result)
+        print("Mask and result saved as mask.png and result.png")
 
 # Clean up
 cv2.destroyAllWindows()

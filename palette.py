@@ -16,6 +16,7 @@ def create_hsv_palette_window():
     cv2.createTrackbar("UH", "HSV Palette", 179, 179, nothing)
     cv2.createTrackbar("US", "HSV Palette", 255, 255, nothing)
     cv2.createTrackbar("UV", "HSV Palette", 255, 255, nothing)
+    return True
 
 
 def create_rgb_palette_window():
@@ -23,6 +24,7 @@ def create_rgb_palette_window():
     cv2.createTrackbar("R", "RGB Palette", 0, 255, nothing)
     cv2.createTrackbar("G", "RGB Palette", 0, 255, nothing)
     cv2.createTrackbar("B", "RGB Palette", 0, 255, nothing)
+    return True
 
 
 def get_hsv_values():
@@ -58,7 +60,11 @@ def draw_text_with_semi_transparent_bg(img, text, position, font_scale=0.7, colo
 
 
 def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
-    img[:] = [l_h, l_s, l_v]
+    # Blend lower and upper HSV values
+    blended_h = (l_h + u_h) // 2
+    blended_s = (l_s + u_s) // 2
+    blended_v = (l_v + u_v) // 2
+    img[:] = [blended_h, blended_s, blended_v]
     text_color = (255, 255, 255)
     draw_text_with_semi_transparent_bg(img, f"LH={l_h}, LS={l_s}, LV={l_v}", (20, 50), color=text_color)
     draw_text_with_semi_transparent_bg(img, f"UH={u_h}, US={u_s}, UV={u_v}", (20, 90), color=text_color)
