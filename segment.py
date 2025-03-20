@@ -27,14 +27,13 @@ except cv2.error as e:
     logging.error(f"OpenCV error: {str(e)}")
     print("Error: Unable to open video file. Ensure the file is not corrupted and is in a supported format.")
     exit(1)
-    
-    if not cap.isOpened():
-        raise ValueError("Error opening video file.")
-
 except Exception as e:
     logging.error(f"Unexpected error: {str(e)}")
     print("Error: An unexpected error occurred while loading the video.")
     exit(1)
+
+if not cap.isOpened():
+    raise ValueError("Error opening video file.")
 
 # Create display windows to show results
 cv2.namedWindow("Tracking", cv2.WINDOW_NORMAL)  # Ensure "Tracking" window is created
@@ -71,17 +70,20 @@ while True:
             print("End of video or unable to read frame. Exiting...")
             break  # Exit when video ends or an error occurs
 
+        # Convert the frame to HSV color space
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
         # Get the current values of the trackbars (lower and upper bounds for segmentation)
         lower, upper = get_trackbar_values("Tracking")
 
         # Handle hue wrapping for colors like red (where lower hue > upper hue)
         if upper[0] < lower[0]:  # Handle hue wrapping case
-            mask1, result1 = apply_mask(frame, lower, np.array([179, upper[1], upper[2]]))
-            mask2, result2 = apply_mask(frame, np.array([0, lower[1], lower[2]]), upper)
+            mask1, result1 = apply_mask(hsv_frame, lower, np.array([179, upper[1], upper[2]]))
+            mask2, result2 = apply_mask(hsv_frame, np.array([0, lower[1], lower[2]]), upper)
             mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
             result = cv2.bitwise_or(result1, result2)  # Combine the results
         else:
-            mask, result = apply_mask(frame, lower, upper)
+            mask, result = apply_mask(hsv_frame, lower, upper)
 
         # Resize video frame to match desired width (e.g., width=512)
         frame = resize_with_aspect_ratio(frame, width=512)
@@ -114,17 +116,20 @@ while True:
         print("End of video or unable to read frame. Exiting...")
         break  # Exit when video ends or an error occurs
 
+    # Convert the frame to HSV color space
+    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
     # Get the current values of the trackbars (lower and upper bounds for segmentation)
     lower, upper = get_trackbar_values("Tracking")
 
     # Handle hue wrapping for colors like red (where lower hue > upper hue)
     if upper[0] < lower[0]:  # Handle hue wrapping case
-        mask1, result1 = apply_mask(frame, lower, np.array([179, upper[1], upper[2]]))
-        mask2, result2 = apply_mask(frame, np.array([0, lower[1], lower[2]]), upper)
+        mask1, result1 = apply_mask(hsv_frame, lower, np.array([179, upper[1], upper[2]]))
+        mask2, result2 = apply_mask(hsv_frame, np.array([0, lower[1], lower[2]]), upper)
         mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
         result = cv2.bitwise_or(result1, result2)  # Combine the results
     else:
-        mask, result = apply_mask(frame, lower, upper)
+        mask, result = apply_mask(hsv_frame, lower, upper)
 
     # Resize video frame to match desired width (e.g., width=512)
     frame = resize_with_aspect_ratio(frame, width=512)
