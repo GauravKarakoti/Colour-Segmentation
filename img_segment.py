@@ -1,7 +1,11 @@
 import cv2
 import argparse
 import numpy as np
+import logging
 from segmentation_utils import *
+
+# Initialize logging
+logging.basicConfig(filename='error.log', level=logging.ERROR)
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description="Segmentation of an image file.")
@@ -14,13 +18,29 @@ image_path = args.image if args.image else input("Enter the image file path: ").
 # Try loading the image
 try:
     img = load_image(image_path)  # Function from segmentation_utils
-except (FileNotFoundError, ValueError, PermissionError, RuntimeError) as e:
-    print(f"Error: {e}")
+except FileNotFoundError:
+    logging.error(f"File not found: {image_path}")
+    print("Error: File not found. Please check the file path and try again.")
+    exit(1)
+except ValueError as e:
+    logging.error(f"Value error: {e}")
+    print("Error: Invalid image format. Please provide a valid image file.")
+    exit(1)
+except PermissionError:
+    logging.error(f"Permission denied: {image_path}")
+    print("Error: Permission denied. Please check your file permissions.")
+    exit(1)
+except RuntimeError as e:
+    logging.error(f"Runtime error: {e}")
+    print("Error: Unable to load image. Please ensure the file is not corrupted and try again.")
+    exit(1)
+except Exception as e:
+    logging.error(f"Unexpected error: {e}")
+    print("Error: An unexpected error occurred. Please check the error log for details.")
     exit(1)
 
 # Create a named window FIRST
 cv2.namedWindow("Tracking")
-
 
 # Function to handle trackbar updates
 def nothing(x):
@@ -78,6 +98,7 @@ while True:
     # Display results
     display_results(original=img_resized, mask=mask, result=result)
 
+
     # Handle keypress events
     key = cv2.waitKey(1)
     if key == 27:  # ESC key
@@ -86,6 +107,7 @@ while True:
         cv2.imwrite("mask.png", mask)
         cv2.imwrite("result.png", result)
         print("Mask and result saved as mask.png and result.png")
+
 
 # Clean up
 cv2.destroyAllWindows()
