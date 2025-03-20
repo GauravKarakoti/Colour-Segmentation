@@ -1,6 +1,8 @@
 import cv2
 import argparse
 import numpy as np
+import tkinter as tk
+from tkinter import simpledialog
 from segmentation_utils import *
 
 # Initialize argument parser
@@ -37,6 +39,12 @@ cv2.createTrackbar("UH", "Tracking", 179, 179, nothing)
 cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("K_Size", "Tracking", 1, 30, nothing)
+
+def prompt_filename(title, default_name):
+    root = tk.Tk()
+    root.withdraw()  
+    filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name)
+    return filename if filename else default_name
 
 # Main loop
 while True:
@@ -83,9 +91,14 @@ while True:
     if key == 27:  # ESC key
         break
     elif key == ord('s'):  # 's' key to save mask and result
-        cv2.imwrite("mask.png", mask)
-        cv2.imwrite("result.png", result)
-        print("Mask and result saved as mask.png and result.png")
+        mask_filename = prompt_filename("Mask Image", "mask") + ".png"
+        result_filename = prompt_filename("Result Image", "result") + ".png"
+
+        cv2.imwrite(mask_filename, mask)
+        cv2.imwrite(result_filename, result)
+
+        print(f"Mask saved as {mask_filename}")
+        print(f"Result saved as {result_filename}")
 
 # Clean up
 cv2.destroyAllWindows()
