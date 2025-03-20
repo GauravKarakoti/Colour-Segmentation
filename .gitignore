@@ -7,3 +7,5 @@ hsv_palette.png
 result.png
 mask.png
 __pycache__
+error.log
+segmentation_errors.log

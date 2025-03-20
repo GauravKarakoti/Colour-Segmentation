@@ -3,7 +3,11 @@ import argparse
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog
+import logging
 from segmentation_utils import *
+
+# Initialize logging
+logging.basicConfig(filename='error.log', level=logging.ERROR)
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description="Segmentation of an image file.")
@@ -16,13 +20,33 @@ image_path = args.image if args.image else input("Enter the image file path: ").
 # Try loading the image
 try:
     img = load_image(image_path)  # Function from segmentation_utils
-except (FileNotFoundError, ValueError, PermissionError, RuntimeError) as e:
-    print(f"Error: {e}")
+    if img is None:
+        raise FileNotFoundError(f"Unable to open image: {image_path}")
+    # Convert the image to HSV color space
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+except FileNotFoundError:
+    logging.error(f"File not found: {image_path}")
+    print("Error: File not found. Please check the file path and try again.")
+    exit(1)
+except ValueError as e:
+    logging.error(f"Value error: {e}")
+    print("Error: Invalid image format. Please provide a valid image file.")
+    exit(1)
+except PermissionError:
+    logging.error(f"Permission denied: {image_path}")
+    print("Error: Permission denied. Please check your file permissions.")
+    exit(1)
+except RuntimeError as e:
+    logging.error(f"Runtime error: {e}")
+    print("Error: Unable to load image. Please ensure the file is not corrupted and try again.")
+    exit(1)
+except Exception as e:
+    logging.error(f"Unexpected error: {e}")
+    print("Error: An unexpected error occurred. Please check the error log for details.")
     exit(1)
 
 # Create a named window FIRST
 cv2.namedWindow("Tracking")
-
 
 # Function to handle trackbar updates
 def nothing(x):
@@ -68,12 +92,12 @@ while True:
 
     # Handle hue wrapping
     if upper[0] < lower[0]:
-        mask1, result1 = apply_mask(img, lower, np.array([179, upper[1], upper[2]]))
-        mask2, result2 = apply_mask(img, np.array([0, lower[1], lower[2]]), upper)
+        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]))
+        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper)
         mask = cv2.bitwise_or(mask1, mask2)
         result = cv2.bitwise_or(result1, result2)
     else:
-        mask, result = apply_mask(img, lower, upper)
+        mask, result = apply_mask(hsv_img, lower, upper)
 
     # Resize image for display
     img_resized = resize_with_aspect_ratio(img, width=512)
@@ -85,6 +109,7 @@ while True:
 
     # Display results
     display_results(original=img_resized, mask=mask, result=result)
+
 
     # Handle keypress events
     key = cv2.waitKey(1)
@@ -99,6 +124,7 @@ while True:
 
         print(f"Mask saved as {mask_filename}")
         print(f"Result saved as {result_filename}")
+
 
 # Clean up
 cv2.destroyAllWindows()
