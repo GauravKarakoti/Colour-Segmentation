@@ -1,7 +1,11 @@
 import cv2
 import argparse
 import numpy as np
+import logging
 from segmentation_utils import *  # Assuming this imports required utilities
+
+# Initialize logging
+logging.basicConfig(filename='segmentation_errors.log', level=logging.ERROR)
 
 # Initialize argument parser to allow users to provide a video path via command line
 parser = argparse.ArgumentParser(description="Segmentation of a video file.")
@@ -14,8 +18,17 @@ video_path = args.video if args.video else input("Enter the video file path: ").
 # Load the video using the utility function
 try:
     cap = load_video(video_path)  # Open the video file
+except FileNotFoundError:
+    logging.error(f"File not found: {video_path}")
+    print("Error: Video file not found. Please check the path and try again.")
+    exit(1)
+except cv2.error as e:
+    logging.error(f"OpenCV error: {str(e)}")
+    print("Error: Unable to open video file. Ensure the file is not corrupted and is in a supported format.")
+    exit(1)
 except Exception as e:
-    print(f"Error loading video: {str(e)}")
+    logging.error(f"Unexpected error: {str(e)}")
+    print("Error: An unexpected error occurred while loading the video.")
     exit(1)
 
 # Create display windows to show results
@@ -46,40 +59,49 @@ cv2.resizeWindow("Tracking", 500, 10)
 
 # Start an infinite loop for video processing
 while True:
-    ret, frame = cap.read()  # Read a frame from the video
-    if not ret:
-        print("End of video or unable to read frame. Exiting...")
-        break  # Exit when video ends or an error occurs
+    try:
+        ret, frame = cap.read()  # Read a frame from the video
+        if not ret:
+            print("End of video or unable to read frame. Exiting...")
+            break  # Exit when video ends or an error occurs
 
-    # Get the current values of the trackbars (lower and upper bounds for segmentation)
-    lower, upper = get_trackbar_values("Tracking")
+        # Get the current values of the trackbars (lower and upper bounds for segmentation)
+        lower, upper = get_trackbar_values("Tracking")
 
-    # Handle hue wrapping for colors like red (where lower hue > upper hue)
-    if upper[0] < lower[0]:  # Handle hue wrapping case
-        mask1, result1 = apply_mask(frame, lower, np.array([179, upper[1], upper[2]]))
-        mask2, result2 = apply_mask(frame, np.array([0, lower[1], lower[2]]), upper)
-        mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
-        result = cv2.bitwise_or(result1, result2)  # Combine the results
-    else:
-        mask, result = apply_mask(frame, lower, upper)
+        # Handle hue wrapping for colors like red (where lower hue > upper hue)
+        if upper[0] < lower[0]:  # Handle hue wrapping case
+            mask1, result1 = apply_mask(frame, lower, np.array([179, upper[1], upper[2]]))
+            mask2, result2 = apply_mask(frame, np.array([0, lower[1], lower[2]]), upper)
+            mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
+            result = cv2.bitwise_or(result1, result2)  # Combine the results
+        else:
+            mask, result = apply_mask(frame, lower, upper)
 
-    # Resize video frame to match desired width (e.g., width=512)
-    frame = resize_with_aspect_ratio(frame, width=512)
+        # Resize video frame to match desired width (e.g., width=512)
+        frame = resize_with_aspect_ratio(frame, width=512)
 
-    # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
-    kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
-    kernel_size = max(kernel_size, 1)  # Ensure kernel size is at least 1x1
-    kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
-    result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
+        # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
+        kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
+        kernel_size = max(kernel_size, 1)  # Ensure kernel size is at least 1x1
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
+        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
 
-    # Display the original frame in the "Original" window
-    cv2.imshow("Original", frame)
+        # Display the original frame in the "Original" window
+        cv2.imshow("Original", frame)
 
-    # Display the mask and result side by side in the "Tracking" window
-    display_results(frame=frame, mask=mask, result=result)
+        # Display the mask and result side by side in the "Tracking" window
+        display_results(frame=frame, mask=mask, result=result)
 
-    # Wait for 1ms and check if the ESC key (27) is pressed to exit the loop
-    if cv2.waitKey(1) == 27:
+        # Wait for 1ms and check if the ESC key (27) is pressed to exit the loop
+        if cv2.waitKey(1) == 27:
+            break
+    except cv2.error as e:
+        logging.error(f"OpenCV error during processing: {str(e)}")
+        print("Error: An error occurred during video processing. Check the log file for details.")
+        break
+    except Exception as e:
+        logging.error(f"Unexpected error during processing: {str(e)}")
+        print("Error: An unexpected error occurred during video processing. Check the log file for details.")
         break
 
 # Release video capture and destroy all OpenCV windows
