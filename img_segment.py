@@ -18,6 +18,10 @@ image_path = args.image if args.image else input("Enter the image file path: ").
 # Try loading the image
 try:
     img = load_image(image_path)  # Function from segmentation_utils
+    if img is None:
+        raise FileNotFoundError(f"Unable to open image: {image_path}")
+    # Convert the image to HSV color space
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 except FileNotFoundError:
     logging.error(f"File not found: {image_path}")
     print("Error: File not found. Please check the file path and try again.")
@@ -80,12 +84,12 @@ while True:
 
     # Handle hue wrapping
     if upper[0] < lower[0]:
-        mask1, result1 = apply_mask(img, lower, np.array([179, upper[1], upper[2]]))
-        mask2, result2 = apply_mask(img, np.array([0, lower[1], lower[2]]), upper)
+        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]))
+        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper)
         mask = cv2.bitwise_or(mask1, mask2)
         result = cv2.bitwise_or(result1, result2)
     else:
-        mask, result = apply_mask(img, lower, upper)
+        mask, result = apply_mask(hsv_img, lower, upper)
 
     # Resize image for display
     img_resized = resize_with_aspect_ratio(img, width=512)
