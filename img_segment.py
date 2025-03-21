@@ -46,7 +46,7 @@ except Exception as e:
     exit(1)
 
 # Create a named window FIRST
-cv2.namedWindow("Tracking")
+cv2.namedWindow("Tracking",cv2.WINDOW_AUTOSIZE)
 
 # Function to handle trackbar updates
 def nothing(x):
