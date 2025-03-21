@@ -34,6 +34,7 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
 
 def load_image(image_path):
     """Load and resize image, return image or None if error occurs."""
+    image_path = os.path.join('images', image_path)
     check_file_access(image_path)
 
     valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp')
@@ -51,6 +52,7 @@ def load_image(image_path):
 
 def load_video(video_path):
     """Load a video file and return a VideoCapture object. Raises an error if the file is missing."""
+    video_path = os.path.join('videos', video_path)
     check_file_access(video_path)
 
     valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')
