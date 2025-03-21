@@ -46,7 +46,7 @@ except Exception as e:
     exit(1)
 
 # Create a named window FIRST
-cv2.namedWindow("Tracking")
+cv2.namedWindow("Tracking",cv2.WINDOW_NORMAL)
 
 # Function to handle trackbar updates
 def nothing(x):
@@ -56,6 +56,7 @@ def nothing(x):
 cv2.imshow("Tracking", np.zeros((100, 600, 3), np.uint8))
 
 # Create trackbars
+cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 1)
 cv2.createTrackbar("LH", "Tracking", 0, 179, nothing)
 cv2.createTrackbar("LS", "Tracking", 0, 255, nothing)
 cv2.createTrackbar("LV", "Tracking", 0, 255, nothing)
@@ -63,6 +64,8 @@ cv2.createTrackbar("UH", "Tracking", 179, 179, nothing)
 cv2.createTrackbar("US", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "Tracking", 255, 255, nothing)
 cv2.createTrackbar("K_Size", "Tracking", 1, 30, nothing)
+
+create_display_windows(input_type='img')
 
 def prompt_filename(title, default_name):
     root = tk.Tk()
