@@ -37,11 +37,11 @@ if not cap.isOpened():
 
 # Create display windows to show results
 cv2.namedWindow("Tracking", cv2.WINDOW_NORMAL)  # Ensure "Tracking" window is created
-cv2.namedWindow("Original", cv2.WINDOW_NORMAL)  # Window to display original frame
 
 # Create trackbars for real-time tuning of segmentation parameters
 def create_trackbars(window_name):
     # Trackbars to adjust lower and upper bounds of the color range
+    cv2.resizeWindow("Tracking", 500, 300)
     cv2.createTrackbar("LH", window_name, 0, 179, nothing)  # Lower Hue
     cv2.createTrackbar("LS", window_name, 0, 255, nothing)  # Lower Saturation
     cv2.createTrackbar("LV", window_name, 0, 255, nothing)  # Lower Value
@@ -53,13 +53,12 @@ def create_trackbars(window_name):
 def nothing(x):
     pass  # Placeholder for the trackbar callback (does nothing)
 
+create_display_windows(input_type='video')
+
 # Create the trackbars
 create_trackbars("Tracking")
 
-# Ensure the trackbars and window are initialized properly before the loop
-cv2.waitKey(1)  # This ensures the window and trackbars are fully initialized
-
-cv2.resizeWindow("Tracking", 500, 10)
+cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST,1)
 
 # Start an infinite loop for video processing
 while True:
