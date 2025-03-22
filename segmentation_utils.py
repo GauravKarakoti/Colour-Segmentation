@@ -100,14 +100,16 @@ def get_trackbar_values(window_name="Tracking"):
 
     return lower_bound, upper_bound
 
-def apply_mask(image, lower_bound, upper_bound):
+def apply_mask(image, lower_bound, upper_bound,  kernel_size=5):
     """Apply a mask to segment colors in the HSV range with noise reduction."""
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_bound, upper_bound)
 
-    kernel = np.ones((5, 5), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)  
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel) 
+    if kernel_size > 1:
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)  
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel) 
+
     result = cv2.bitwise_and(image, image, mask=mask)
     return mask, result
 
