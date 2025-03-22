@@ -75,11 +75,8 @@ while True:
         # Get the current values of the trackbars (lower and upper bounds for segmentation)
         lower, upper = get_trackbar_values("Tracking")
 
-        # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
         kernel_size = max(kernel_size, 1)  # Ensure kernel size is at least 1x1
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
-        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
 
         # Handle hue wrapping for colors like red (where lower hue > upper hue)
         if upper[0] < lower[0]:  # Handle hue wrapping case
@@ -94,6 +91,10 @@ while True:
         frame = resize_with_aspect_ratio(frame, width=512)
         mask = cv2.resize(mask, (512, 512))
         result = cv2.resize(result, (512, 512))
+
+        # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
+        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
 
         # Display the original frame in the "Original" window
         cv2.imshow("Original", frame)
@@ -113,10 +114,10 @@ while True:
         print("Error: An unexpected error occurred during video processing. Check the log file for details.")
         
     # Convert mask to 3 channels before writing to video
-    mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    # mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
     # Get frame dimensions
-    frame_height, frame_width = mask.shape[:2]
+    # frame_height, frame_width = mask.shape[:2]
 
     # Display the original frame in the "Original" window
     cv2.imshow("Original", frame)
