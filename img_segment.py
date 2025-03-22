@@ -108,7 +108,7 @@ while True:
     # Adjust kernel size
     kernel_size = max(1, cv2.getTrackbarPos("K_Size", "Tracking"))
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
-    result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+    mask, result = apply_mask(hsv_img, lower, upper, kernel_size=kernel_size)
 
     # Display results
     display_results(original=img_resized, mask=mask, result=result)
