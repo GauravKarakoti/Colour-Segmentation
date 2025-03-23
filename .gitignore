@@ -9,3 +9,4 @@ mask.png
 __pycache__
 error.log
 segmentation_errors.log
+output.avi
