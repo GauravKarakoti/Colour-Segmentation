@@ -3,22 +3,27 @@ import argparse
 import numpy as np
 import logging
 from segmentation_utils import *  # Assuming this imports required utilities
-import os
 
 # Initialize logging
 logging.basicConfig(filename='segmentation_errors.log', level=logging.ERROR)
 
-# Initialize argument parser to allow users to provide a video path via command line
+# Initialize argument parser
 parser = argparse.ArgumentParser(description="Segmentation of a video file.")
 parser.add_argument("--video", type=str, help="Path to the video file.")
+parser.add_argument("--output", type=str, default="output.avi", help="Path to save the output video.")
+parser.add_argument("--fps", type=int, default=30, help="Frames per second for the output video.")
 args = parser.parse_args()
 
 # Get the video path from command line argument or ask the user for input
 video_path = args.video if args.video else input("Enter the video file path: ").strip()
+output_path = args.output
+fps = args.fps
 
-# Load the video using the utility function
+# Load the video
 try:
-    cap = load_video(video_path)  # Open the video file
+    cap = load_video(video_path)
+    if not cap.isOpened():
+        raise ValueError("Error opening video file.")
 except FileNotFoundError:
     logging.error(f"File not found: {video_path}")
     print("Error: Video file not found. Please check the path and try again.")
@@ -32,15 +37,11 @@ except Exception as e:
     print("Error: An unexpected error occurred while loading the video.")
     exit(1)
 
-if not cap.isOpened():
-    raise ValueError("Error opening video file.")
+# Create display windows
+cv2.namedWindow("Tracking", cv2.WINDOW_NORMAL)
 
-# Create display windows to show results
-cv2.namedWindow("Tracking", cv2.WINDOW_NORMAL)  # Ensure "Tracking" window is created
-
-# Create trackbars for real-time tuning of segmentation parameters
+# Create trackbars
 def create_trackbars(window_name):
-    # Trackbars to adjust lower and upper bounds of the color range
     cv2.resizeWindow("Tracking", 500, 300)
     cv2.createTrackbar("LH", window_name, 0, 179, nothing)  # Lower Hue
     cv2.createTrackbar("LS", window_name, 0, 255, nothing)  # Lower Saturation
@@ -48,19 +49,34 @@ def create_trackbars(window_name):
     cv2.createTrackbar("UH", window_name, 179, 179, nothing)  # Upper Hue
     cv2.createTrackbar("US", window_name, 255, 255, nothing)  # Upper Saturation
     cv2.createTrackbar("UV", window_name, 255, 255, nothing)  # Upper Value
-    cv2.createTrackbar("Kernel Size", window_name, 1, 20, nothing)  # Kernel size for morphology
+    cv2.createTrackbar("Kernel Size", window_name, 1, 30, nothing)
 
 def nothing(x):
-    pass  # Placeholder for the trackbar callback (does nothing)
+    pass
 
 create_display_windows(input_type='video')
 
 # Create the trackbars
 create_trackbars("Tracking")
 
-cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST,1)
+cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 1)
 
-# Start an infinite loop for video processing
+# Get frame dimensions
+ret, frame = cap.read()
+if not ret:
+    print("Error: Unable to read the first frame.")
+    cap.release()
+    cv2.destroyAllWindows()
+    exit(1)
+
+height, width = frame.shape[:2]
+frame_height, frame_width = 512, 512
+
+# Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'XVID') # Codec for AVI format
+out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width * 3, frame_height))
+
+# Start the video processing loop
 while True:
 
     try:
@@ -88,9 +104,9 @@ while True:
             mask, result = apply_mask(hsv_frame, lower, upper,kernel_size=kernel_size)
 
         # Resize video frame to match desired width (e.g., width=512)
-        frame = resize_with_aspect_ratio(frame, width=512)
-        mask = cv2.resize(mask, (512, 512))
-        result = cv2.resize(result, (512, 512))
+        frame = cv2.resize(frame, (frame_width, frame_height))
+        mask = cv2.resize(mask, (frame_width, frame_height))
+        result = cv2.resize(result, (frame_width, frame_height))
 
         # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
@@ -102,7 +118,16 @@ while True:
         # Display the mask and result side by side in the "Tracking" window
         display_results(frame=frame, mask=mask, result=result)
 
-        # Wait for 1ms and check if the ESC key (27) is pressed to exit the loop
+        # Convert mask to 3-channel image for saving
+        mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        
+        # Combine results into a single frame
+        combined_output = np.hstack((frame, mask_3ch, result))
+        
+        # Write the combined frame to the output video
+        out.write(combined_output)
+
+        # Exit on ESC key
         if cv2.waitKey(1) == 27:
             break
     except cv2.error as e:
@@ -112,21 +137,9 @@ while True:
     except Exception as e:
         logging.error(f"Unexpected error during processing: {str(e)}")
         print("Error: An unexpected error occurred during video processing. Check the log file for details.")
-        
-    # Convert mask to 3 channels before writing to video
-    # mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-
-    # Get frame dimensions
-    # frame_height, frame_width = mask.shape[:2]
-
-    # Display the original frame in the "Original" window
-    cv2.imshow("Original", frame)
-
-    # Wait for 1ms and check if the ESC key (27) or 's' key is pressed
-    key = cv2.waitKey(1)
-    if key == 27:  # ESC key
         break
 
-# Release video capture and destroy all OpenCV windows
-release_video(cap)
+# Release resources
+cap.release()
+out.release()
 cv2.destroyAllWindows()
