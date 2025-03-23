@@ -106,7 +106,7 @@ while True:
     img_resized = resize_with_aspect_ratio(img, width=512)
 
     # Adjust kernel size
-    kernel_size = max(1, cv2.getTrackbarPos("K_Size", "Tracking"))
+    kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
