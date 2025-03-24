@@ -92,7 +92,7 @@ while True:
         lower, upper = get_trackbar_values("Tracking")
 
         kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
-        kernel_size = max(kernel_size, 1)  # Ensure kernel size is at least 1x1
+        kernel_size = get_valid_kernel_size(kernel_size)  # Ensure kernel size is at least 1x1
 
         # Handle hue wrapping for colors like red (where lower hue > upper hue)
         if upper[0] < lower[0]:  # Handle hue wrapping case
