@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import simpledialog
 import logging
 from segmentation_utils import *
+import time
 
 # Initialize logging
 logging.basicConfig(filename='error.log', level=logging.ERROR)
@@ -73,8 +74,13 @@ def prompt_filename(title, default_name):
     filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name)
     return filename if filename else default_name
 
+# Frame rate control settings
+frame_delay = 1 / 30  # Target ~30 FPS
+
 # Main loop
 while True:
+    start_time = time.time()
+
     # Check if the "Tracking" window is still open
     if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
         print("Tracking window closed. Exiting...")
@@ -115,8 +121,8 @@ while True:
 
 
     # Handle keypress events
-    key = cv2.waitKey(1)
-    if key == 27:  # ESC key
+    key = cv2.waitKey(10) # Slight delay to reduce CPU usage
+    if key == 27:  # ESC key 
         break
     elif key == ord('s'):  # 's' key to save mask and result
         mask_filename = prompt_filename("Mask Image", "mask") + ".png"
@@ -128,6 +134,9 @@ while True:
         print(f"Mask saved as {mask_filename}")
         print(f"Result saved as {result_filename}")
 
+    elapsed_time = time.time() - start_time
+    sleep_time = max(0, frame_delay - elapsed_time)
+    time.sleep(sleep_time)
 
 # Clean up
 cv2.destroyAllWindows()
