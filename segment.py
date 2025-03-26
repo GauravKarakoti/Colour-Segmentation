@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import logging
 from segmentation_utils import *  # Assuming this imports required utilities
+import time
 
 # Initialize logging
 logging.basicConfig(filename='segmentation_errors.log', level=logging.ERROR)
@@ -75,9 +76,11 @@ frame_height, frame_width = 512, 512
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID') # Codec for AVI format
 out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width * 3, frame_height))
+frame_delay = 1 / fps  # Control FPS
 
 # Start the video processing loop
 while True:
+    start_time = time.time()
 
     try:
         ret, frame = cap.read()  # Read a frame from the video
@@ -128,8 +131,13 @@ while True:
         out.write(combined_output)
 
         # Exit on ESC key
-        if cv2.waitKey(1) == 27:
+        if cv2.waitKey(10) == 27:
             break
+
+        # ---- FPS Control ----
+        elapsed_time = time.time() - start_time
+        time.sleep(max(0, frame_delay - elapsed_time))
+
     except cv2.error as e:
         logging.error(f"OpenCV error during processing: {str(e)}")
         print("Error: An error occurred during video processing. Check the log file for details.")
