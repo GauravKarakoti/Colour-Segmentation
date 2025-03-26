@@ -208,7 +208,7 @@ def main():
         cv2.imshow("HSV Palette", img_hsv)
         cv2.imshow("RGB Palette", img_rgb)
 
-        key = cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(10) & 0xFF
         if key == 27:
             break
         elif key == ord('s'):
