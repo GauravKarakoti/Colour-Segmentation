@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog, messagebox
-
+import time
 
 def nothing(x):
     pass
@@ -193,7 +193,9 @@ def main():
     create_hsv_palette_window()
     create_rgb_palette_window()
 
+    frame_delay = 1 / 30  # 30 FPS
     while True:
+        start_time = time.time()
         if cv2.getWindowProperty("HSV Palette", cv2.WND_PROP_VISIBLE) < 1 or cv2.getWindowProperty("RGB Palette", cv2.WND_PROP_VISIBLE) < 1:
             break
 
@@ -206,7 +208,7 @@ def main():
         cv2.imshow("HSV Palette", img_hsv)
         cv2.imshow("RGB Palette", img_rgb)
 
-        key = cv2.waitKey(1) & 0xFF
+        key = cv2.waitKey(10) & 0xFF
         if key == 27:
             break
         elif key == ord('s'):
@@ -215,6 +217,9 @@ def main():
             rgb_input_window()
         elif key == ord('h'):
             hsv_input_window()
+
+        elapsed_time = time.time() - start_time
+        time.sleep(max(0, frame_delay - elapsed_time))
 
     cv2.destroyAllWindows()
 
