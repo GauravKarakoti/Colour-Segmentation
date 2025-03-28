@@ -25,6 +25,10 @@ try:
         raise FileNotFoundError(f"Unable to open image: {image_path}")
     # Convert the image to HSV color space
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    # Convert back to BGR before displaying
+    bgr_img = cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)
+    
 except FileNotFoundError:
     logging.error(f"File not found: {image_path}")
     print("Error: File not found. Please check the file path and try again.")
@@ -55,6 +59,8 @@ def nothing(x):
 
 # Create a blank image to ensure trackbars are visible
 cv2.imshow("Tracking", np.zeros((100, 600, 3), np.uint8))
+
+cv2.imshow("Tracking", bgr_img)
 
 # Create trackbars
 cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 1)
