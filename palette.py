@@ -81,8 +81,8 @@ def save_images(img_hsv, img_rgb):
     root = tk.Tk()
     root.withdraw()
 
-    hsv_filename = simpledialog.askstring("Save Image", "Enter filename for HSV palette (without extension):") or "default_hsv"
-    rgb_filename = simpledialog.askstring("Save Image", "Enter filename for RGB palette (without extension):") or "default_rgb"
+    hsv_filename = simpledialog.askstring("Save Image", '''Enter filename for HSV palette (without extension):''',initialvalue="default_hsv")
+    rgb_filename = simpledialog.askstring("Save Image", '''Enter filename for RGB palette (without extension):''',initialvalue="default_rgb")
 
     if hsv_filename and rgb_filename:
         cv2.imwrite(f"{hsv_filename}_with_text.png", img_hsv)
