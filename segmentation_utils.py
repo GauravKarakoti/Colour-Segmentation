@@ -224,28 +224,28 @@ def get_trackbar_values(window_name="Tracking"):
 
     return lower_bound, upper_bound
 
-def apply_mask(image, lower_bound, upper_bound, kernel_size=5):
+def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1):
     """
-    Applies a mask to segment colors in the specified HSV range with optional noise reduction.
-    
-    Args:
-        image (numpy.ndarray): The input image.
-        lower_bound (numpy.ndarray): The lower HSV bound.
-        upper_bound (numpy.ndarray): The upper HSV bound.
-        kernel_size (int, optional): Kernel size for morphological operations. Default is 5.
-    
-    Returns:
-        tuple: The binary mask and segmented result.
+    Apply a mask to the image based on the given lower and upper HSV bounds.
+    :param image: Input image (BGR or HSV depending on hsv_converted flag)
+    :param lower: Lower HSV bound
+    :param upper: Upper HSV bound
+    :param hsv_converted: Boolean indicating if the image is already in HSV
+    :param kernel_size: Size of the morphological kernel for post-processing
+    :return: Tuple of (mask, result)
     """
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+    # Convert to HSV only if not already converted
+    hsv_image = image if hsv_converted else cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    mask = cv2.inRange(hsv_image, lower, upper)
+    result = cv2.bitwise_and(image, image, mask=mask)
 
+    # Apply morphological operations if kernel_size > 1
     if kernel_size > 1:
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        result = cv2.bitwise_and(image, image, mask=mask)
 
-    result = cv2.bitwise_and(image, image, mask=mask)
     return mask, result
 
 def display_results(original=None, mask=None, result=None, frame=None):

@@ -23,7 +23,7 @@ try:
     img = load_image(image_path)  # Function from segmentation_utils
     if img is None:
         raise FileNotFoundError(f"Unable to open image: {image_path}")
-    # Convert the image to HSV color space
+    # Convert the image to HSV color space upfront
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 except FileNotFoundError:
     logging.error(f"File not found: {image_path}")
@@ -99,18 +99,19 @@ while True:
         cv2.getTrackbarPos("UV", "Tracking")
     ])
 
+    # Adjust kernel size
+    kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
+
     # Handle hue wrapping
     if upper[0] < lower[0]:
-        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]))
-        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper)
+        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]), hsv_converted=True, kernel_size=kernel_size)
+        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper, hsv_converted=True, kernel_size=kernel_size)
         mask = cv2.bitwise_or(mask1, mask2)
         result = cv2.bitwise_or(result1, result2)
     else:
-        mask, result = apply_mask(hsv_img, lower, upper)
+        mask, result = apply_mask(hsv_img, lower, upper, hsv_converted=True, kernel_size=kernel_size)
 
 
-    # Adjust kernel size
-    kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
