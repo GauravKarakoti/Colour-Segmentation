@@ -106,23 +106,26 @@ while True:
         else:
             mask, result = apply_mask(hsv_frame, lower, upper,kernel_size=kernel_size)
 
-        # Resize video frame to match desired width (e.g., width=512)
-        frame = cv2.resize(frame, (frame_width, frame_height))
-        mask = cv2.resize(mask, (frame_width, frame_height))
-        result = cv2.resize(result, (frame_width, frame_height))
-
         # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
-        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
+        cleaned_mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
+
+        # Generate the result using the cleaned mask
+        result = cv2.bitwise_and(frame, frame, mask=cleaned_mask)
+
+        # Resize video frame to match desired width (e.g., width=512)
+        frame = cv2.resize(frame, (frame_width, frame_height))
+        cleaned_mask = cv2.resize(cleaned_mask, (frame_width, frame_height))
+        result = cv2.resize(result, (frame_width, frame_height))
 
         # Display the original frame in the "Original" window
         cv2.imshow("Original", frame)
 
         # Display the mask and result side by side in the "Tracking" window
-        display_results(frame=frame, mask=mask, result=result)
+        display_results(frame=frame, mask=cleaned_mask, result=result)
 
-        # Convert mask to 3-channel image for saving
-        mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        # Convert cleaned mask to 3-channel image for saving
+        mask_3ch = cv2.cvtColor(cleaned_mask, cv2.COLOR_GRAY2BGR)
         
         # Combine results into a single frame
         combined_output = np.hstack((frame, mask_3ch, result))
