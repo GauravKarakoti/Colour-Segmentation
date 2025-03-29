@@ -56,8 +56,7 @@ def draw_text_with_semi_transparent_bg(img, text, position, font_scale=0.7, colo
 def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
      # Handle circular hue wrap-around
     if l_h > u_h:
-        # Calculate the middle of the two ranges: (wraps around)
-        mid_hue = ((l_h + (u_h + 180)) // 2) % 180
+        mid_hue = (l_h + u_h + 180) % 180
     else:
         mid_hue = (l_h + u_h) // 2
 
@@ -108,30 +107,32 @@ def rgb_input_window():
             cv2.setTrackbarPos("R", "RGB Palette", r)
             cv2.setTrackbarPos("G", "RGB Palette", g)
             cv2.setTrackbarPos("B", "RGB Palette", b)
-            root.destroy()
+            dialog_root.after(0, dialog_root.destroy)  # Non-blocking destroy
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid RGB values (0-255).")
 
-    root = tk.Tk()
-    root.title("RGB Input")
+    dialog_root = tk.Tk()
+    dialog_root.title("RGB Input")
 
-    tk.Label(root, text="R:").grid(row=0, column=0)
-    tk.Label(root, text="G:").grid(row=1, column=0)
-    tk.Label(root, text="B:").grid(row=2, column=0)
+    tk.Label(dialog_root, text="R:").grid(row=0, column=0)
+    tk.Label(dialog_root, text="G:").grid(row=1, column=0)
+    tk.Label(dialog_root, text="B:").grid(row=2, column=0)
 
-    entry_r = tk.Entry(root)
-    entry_g = tk.Entry(root)
-    entry_b = tk.Entry(root)
+    entry_r = tk.Entry(dialog_root)
+    entry_g = tk.Entry(dialog_root)
+    entry_b = tk.Entry(dialog_root)
 
     entry_r.grid(row=0, column=1)
     entry_g.grid(row=1, column=1)
     entry_b.grid(row=2, column=1)
 
-    tk.Button(root, text="Apply", command=apply_values).grid(row=3, column=0, columnspan=2)
+    tk.Button(dialog_root, text="Apply", command=apply_values).grid(row=3, column=0, columnspan=2)
 
-    root.mainloop()
+    dialog_root.mainloop()
 
 def hsv_input_window():
+    dialog_root = tk.Tk()
+    dialog_root.title("HSV Input")
     def apply_values():
         try:
             lh = int(entry_lh.get())
@@ -150,27 +151,25 @@ def hsv_input_window():
             cv2.setTrackbarPos("UH", "HSV Palette", uh)
             cv2.setTrackbarPos("US", "HSV Palette", us)
             cv2.setTrackbarPos("UV", "HSV Palette", uv)
-
-            root.destroy()
+            dialog_root.after(0, dialog_root.destroy)  # Non-blocking destroy
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid HSV values.")
 
-    root = tk.Tk()
-    root.title("HSV Input")
+    dialog_root.title("HSV Input")
 
-    tk.Label(root, text="LH:").grid(row=0, column=0)
-    tk.Label(root, text="LS:").grid(row=1, column=0)
-    tk.Label(root, text="LV:").grid(row=2, column=0)
-    tk.Label(root, text="UH:").grid(row=3, column=0)
-    tk.Label(root, text="US:").grid(row=4, column=0)
-    tk.Label(root, text="UV:").grid(row=5, column=0)
+    tk.Label(dialog_root, text="LH:").grid(row=0, column=0)
+    tk.Label(dialog_root, text="LS:").grid(row=1, column=0)
+    tk.Label(dialog_root, text="LV:").grid(row=2, column=0)
+    tk.Label(dialog_root, text="UH:").grid(row=3, column=0)
+    tk.Label(dialog_root, text="US:").grid(row=4, column=0)
+    tk.Label(dialog_root, text="UV:").grid(row=5, column=0)
 
-    entry_lh = tk.Entry(root)
-    entry_ls = tk.Entry(root)
-    entry_lv = tk.Entry(root)
-    entry_uh = tk.Entry(root)
-    entry_us = tk.Entry(root)
-    entry_uv = tk.Entry(root)
+    entry_lh = tk.Entry(dialog_root)
+    entry_ls = tk.Entry(dialog_root)
+    entry_lv = tk.Entry(dialog_root)
+    entry_uh = tk.Entry(dialog_root)
+    entry_us = tk.Entry(dialog_root)
+    entry_uv = tk.Entry(dialog_root)
 
     entry_lh.grid(row=0, column=1)
     entry_ls.grid(row=1, column=1)
@@ -179,9 +178,8 @@ def hsv_input_window():
     entry_us.grid(row=4, column=1)
     entry_uv.grid(row=5, column=1)
 
-    tk.Button(root, text="Apply", command=apply_values).grid(row=6, column=0, columnspan=2)
-
-    root.mainloop()
+    tk.Button(dialog_root, text="Apply", command=apply_values).grid(row=6, column=0, columnspan=2)
+    dialog_root.mainloop()
 
 def default_hsv():
     return (0, 50, 50), (179, 255, 255)
