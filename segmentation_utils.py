@@ -142,6 +142,50 @@ def release_video(cap):
     if cap is not None and cap.isOpened():
         cap.release()
 
+def create_named_window(window_name, topmost=True):
+    """
+    Creates an OpenCV window with an optional topmost property.
+    
+    Args:
+        window_name (str): The name of the window.
+        topmost (bool, optional): Whether the window should stay on top. Default is True.
+    """
+    cv2.namedWindow(window_name)
+    if topmost:
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+
+def create_trackbar(name, window_name, min_val, max_val, default_val, callback=nothing):
+    """
+    Creates a single trackbar in the specified window.
+    
+    Args:
+        name (str): The name of the trackbar.
+        window_name (str): The name of the window.
+        min_val (int): Minimum value of the trackbar.
+        max_val (int): Maximum value of the trackbar.
+        default_val (int): Default value of the trackbar.
+        callback (function, optional): Callback function for the trackbar. Default is `nothing`.
+    """
+    cv2.createTrackbar(name, window_name, default_val, max_val, callback)
+
+def create_display_windows(input_type):
+    """
+    Create windows for displaying images and ensure they stay on top.
+    
+    Args:
+        input_type (str): "img" for image processing, "video" for real-time video.
+
+    Raises:
+        ValueError: If the input_type is not "img" or "video".
+    """
+    if input_type not in ["img", "video"]:
+        raise ValueError("Invalid input_type. Use 'img' for image or 'video' for real-time processing.")
+
+    window_names = ["Mask", "Result", "Original"]
+
+    for window in window_names:
+        create_named_window(window)
+
 def create_trackbars(window_name="Tracking"):
     """
     Creates HSV trackbars for interactive color segmentation.
@@ -149,15 +193,13 @@ def create_trackbars(window_name="Tracking"):
     Args:
         window_name (str, optional): The name of the OpenCV window. Default is "Tracking".
     """
-    cv2.namedWindow(window_name)
-    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
-
-    cv2.createTrackbar("LH", window_name, 0, 179, nothing)
-    cv2.createTrackbar("LS", window_name, 50, 255, nothing)
-    cv2.createTrackbar("LV", window_name, 50, 255, nothing)
-    cv2.createTrackbar("UH", window_name, 179, 179, nothing)
-    cv2.createTrackbar("US", window_name, 255, 255, nothing)
-    cv2.createTrackbar("UV", window_name, 255, 255, nothing)
+    create_named_window(window_name)
+    create_trackbar("LH", window_name, 0, 179, 0)
+    create_trackbar("LS", window_name, 0, 255, 50)
+    create_trackbar("LV", window_name, 0, 255, 50)
+    create_trackbar("UH", window_name, 0, 179, 179)
+    create_trackbar("US", window_name, 0, 255, 255)
+    create_trackbar("UV", window_name, 0, 255, 255)
 
 def get_trackbar_values(window_name="Tracking"):
     """
@@ -205,25 +247,6 @@ def apply_mask(image, lower_bound, upper_bound, kernel_size=5):
 
     result = cv2.bitwise_and(image, image, mask=mask)
     return mask, result
-
-def create_display_windows(input_type):
-    """
-    Create windows for displaying images and ensure they stay on top.
-    
-    Args:
-    - input_type (str): "img" for image processing, "video" for real-time video.
-
-    Raises:
-    - ValueError: If the input_type is not "img" or "video".
-    """
-    if input_type not in ["img", "video"]:
-        raise ValueError("Invalid input_type. Use 'img' for image or 'video' for real-time processing.")
-
-    window_names = ["Mask", "Result", "Original"]
-
-    for window in window_names:
-        cv2.namedWindow(window)
-        cv2.setWindowProperty(window, cv2.WND_PROP_TOPMOST, 1)
 
 def display_results(original=None, mask=None, result=None, frame=None):
     """
