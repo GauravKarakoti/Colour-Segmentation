@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog, messagebox
@@ -6,6 +5,22 @@ import time
 
 def nothing(x):
     pass
+
+
+def save_images(img_hsv, img_rgb):
+    root = tk.Tk()
+    root.withdraw()
+
+    default_hsv_filename = "hsv_palette"
+    default_rgb_filename = "rgb_palette"
+
+    hsv_filename = simpledialog.askstring("Save Image", f"Enter filename for HSV palette (without extension) [{default_hsv_filename}]:")
+    rgb_filename = simpledialog.askstring("Save Image", f"Enter filename for RGB palette (without extension) [{default_rgb_filename}]:")
+
+    if not hsv_filename:
+        hsv_filename = default_hsv_filename
+    if not rgb_filename:
+        rgb_filename = default_rgb_filename
 
 
 def create_hsv_palette_window():
