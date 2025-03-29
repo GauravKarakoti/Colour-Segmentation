@@ -150,9 +150,14 @@ def create_named_window(window_name, topmost=True):
         window_name (str): The name of the window.
         topmost (bool, optional): Whether the window should stay on top. Default is True.
     """
-    cv2.namedWindow(window_name)
-    if topmost:
-        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+    try:
+        cv2.namedWindow(window_name)
+        if topmost:
+            cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+    except cv2.error as e:
+        raise RuntimeError(f"OpenCV error while creating window '{window_name}': {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while creating window '{window_name}': {str(e)}")
 
 def create_trackbar(name, window_name, min_val, max_val, default_val, callback=nothing):
     """
@@ -234,19 +239,24 @@ def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1):
     :param kernel_size: Size of the morphological kernel for post-processing
     :return: Tuple of (mask, result)
     """
-    # Convert to HSV only if not already converted
-    hsv_image = image if hsv_converted else cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    
-    mask = cv2.inRange(hsv_image, lower, upper)
-    result = cv2.bitwise_and(image, image, mask=mask)
-
-    # Apply morphological operations if kernel_size > 1
-    if kernel_size > 1:
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    try:
+        # Convert to HSV only if not already converted
+        hsv_image = image if hsv_converted else cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        
+        mask = cv2.inRange(hsv_image, lower, upper)
         result = cv2.bitwise_and(image, image, mask=mask)
 
-    return mask, result
+        # Apply morphological operations if kernel_size > 1
+        if kernel_size > 1:
+            kernel = np.ones((kernel_size, kernel_size), np.uint8)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+            result = cv2.bitwise_and(image, image, mask=mask)
+
+        return mask, result
+    except cv2.error as e:
+        raise RuntimeError(f"OpenCV error during mask application: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error during mask application: {str(e)}")
 
 def display_results(original=None, mask=None, result=None, frame=None):
     """
@@ -258,13 +268,18 @@ def display_results(original=None, mask=None, result=None, frame=None):
     - result: The final segmented output.
     - frame: The current video frame (None for image mode).
     """
-    if frame is not None:
-        cv2.imshow("Original", frame)
-    elif original is not None:
-        cv2.imshow("Original", original)
+    try:
+        if frame is not None:
+            cv2.imshow("Original", frame)
+        elif original is not None:
+            cv2.imshow("Original", original)
 
-    if mask is not None:
-        cv2.imshow("Mask", mask)
+        if mask is not None:
+            cv2.imshow("Mask", mask)
 
-    if result is not None:
-        cv2.imshow("Result", result)
+        if result is not None:
+            cv2.imshow("Result", result)
+    except cv2.error as e:
+        raise RuntimeError(f"OpenCV error during display: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error during display: {str(e)}")
