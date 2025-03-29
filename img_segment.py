@@ -108,16 +108,19 @@ while True:
     else:
         mask, result = apply_mask(hsv_img, lower, upper)
 
-    # Resize image for display
-    img_resized = resize_with_aspect_ratio(img, width=512)
 
     # Adjust kernel size
     kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
+    # Resize image for display
+    img_resized = resize_with_aspect_ratio(img, width=512)
+    mask_resized = resize_with_aspect_ratio(mask, width=512)
+    result_resized = resize_with_aspect_ratio(result, width=512)
+
     # Display results
-    display_results(original=img_resized, mask=mask, result=result)
+    display_results(original=img_resized, mask=mask_resized, result=result_resized)
 
 
     # Handle keypress events

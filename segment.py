@@ -111,9 +111,9 @@ while True:
             mask, result = apply_mask(hsv_frame, lower, upper,kernel_size=kernel_size)
 
         # Resize video frame to match desired width (e.g., width=512)
-        frame = cv2.resize(frame, (frame_width, frame_height))
-        mask = cv2.resize(mask, (frame_width, frame_height))
-        result = cv2.resize(result, (frame_width, frame_height))
+        frame = cv2.resize(frame, (512,512))
+        mask = cv2.resize(mask, (512,512))
+        result = cv2.resize(result, (512,512))
 
         # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
