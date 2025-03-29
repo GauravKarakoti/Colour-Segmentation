@@ -78,15 +78,19 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID') # Codec for AVI format
 out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width * 3, frame_height))
 frame_delay = 1 / fps  # Control FPS
 
+# Initialize the paused flag
+paused = False
+
 # Start the video processing loop
 while True:
     start_time = time.time()
 
     try:
-        ret, frame = cap.read()  # Read a frame from the video
-        if not ret:
-            print("End of video or unable to read frame. Exiting...")
-            break  # Exit when video ends or an error occurs
+        if not paused:
+            ret, frame = cap.read()  # Read a frame from the video
+            if not ret:
+                print("End of video or unable to read frame. Exiting...")
+                break  # Exit when video ends or an error occurs
 
         # Convert the frame to HSV color space
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -114,9 +118,15 @@ while True:
         result = cv2.bitwise_and(frame, frame, mask=cleaned_mask)
 
         # Resize video frame to match desired width (e.g., width=512)
+
         frame = cv2.resize(frame, (frame_width, frame_height))
         cleaned_mask = cv2.resize(cleaned_mask, (frame_width, frame_height))
         result = cv2.resize(result, (frame_width, frame_height))
+
+        frame = cv2.resize(frame, (512,512))
+        mask = cv2.resize(mask, (512,512))
+        result = cv2.resize(result, (512,512))
+
 
         # Display the original frame in the "Original" window
         cv2.imshow("Original", frame)
@@ -133,9 +143,17 @@ while True:
         # Write the combined frame to the output video
         out.write(combined_output)
 
+        key = cv2.waitKey(10) & 0xFF
+
         # Exit on ESC key
-        if cv2.waitKey(10) == 27:
+        if key == 27:
             break
+        elif key == 32:  # Toggle pause on spacebar press
+            paused = not paused
+            if paused:
+                print("Video paused. Press SPACE to resume.")
+            else:
+                print("Video resumed.")
 
         # ---- FPS Control ----
         elapsed_time = time.time() - start_time

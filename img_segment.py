@@ -111,14 +111,17 @@ while True:
     else:
         mask, result = apply_mask(hsv_img, lower, upper, hsv_converted=True, kernel_size=kernel_size)
 
-    # Resize image for display
-    img_resized = resize_with_aspect_ratio(img, width=512)
 
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
+    # Resize image for display
+    img_resized = resize_with_aspect_ratio(img, width=512)
+    mask_resized = resize_with_aspect_ratio(mask, width=512)
+    result_resized = resize_with_aspect_ratio(result, width=512)
+
     # Display results
-    display_results(original=img_resized, mask=mask, result=result)
+    display_results(original=img_resized, mask=mask_resized, result=result_resized)
 
 
     # Handle keypress events
