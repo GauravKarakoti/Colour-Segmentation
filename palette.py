@@ -4,6 +4,10 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox
 import time
 
+# Create a global root instance at the start
+root = tk.Tk()
+root.withdraw()
+
 def nothing(x):
     pass
 
@@ -56,8 +60,7 @@ def draw_text_with_semi_transparent_bg(img, text, position, font_scale=0.7, colo
 def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
      # Handle circular hue wrap-around
     if l_h > u_h:
-        # Calculate the middle of the two ranges: (wraps around)
-        mid_hue = ((l_h + (u_h + 180)) // 2) % 180
+        mid_hue = (l_h + u_h + 180) % 180
     else:
         mid_hue = (l_h + u_h) // 2
 
@@ -78,7 +81,6 @@ def display_rgb_palette(img, r, g, b):
     draw_text_with_semi_transparent_bg(img, "Press 'S' to save | Press 'I' for RGB Input | Press 'H' for HSV Input | Press 'ESC' to exit", (20, 280), font_scale=0.6, color=text_color)
 
 def save_images(img_hsv, img_rgb):
-    root = tk.Tk()
     root.withdraw()
 
     hsv_filename = simpledialog.askstring("Save Image", '''Enter filename for HSV palette (without extension):''',initialvalue="default_hsv")
@@ -108,11 +110,10 @@ def rgb_input_window():
             cv2.setTrackbarPos("R", "RGB Palette", r)
             cv2.setTrackbarPos("G", "RGB Palette", g)
             cv2.setTrackbarPos("B", "RGB Palette", b)
-            root.destroy()
+            root.after(0, root.destroy)  # Non-blocking destroy
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid RGB values (0-255).")
 
-    root = tk.Tk()
     root.title("RGB Input")
 
     tk.Label(root, text="R:").grid(row=0, column=0)
@@ -129,7 +130,9 @@ def rgb_input_window():
 
     tk.Button(root, text="Apply", command=apply_values).grid(row=3, column=0, columnspan=2)
 
-    root.mainloop()
+    # Non-blocking window
+    root.after(10, lambda: root.lift())
+    root.after(10, lambda: root.focus_force())
 
 def hsv_input_window():
     def apply_values():
@@ -155,7 +158,6 @@ def hsv_input_window():
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter valid HSV values.")
 
-    root = tk.Tk()
     root.title("HSV Input")
 
     tk.Label(root, text="LH:").grid(row=0, column=0)
@@ -181,7 +183,9 @@ def hsv_input_window():
 
     tk.Button(root, text="Apply", command=apply_values).grid(row=6, column=0, columnspan=2)
 
-    root.mainloop()
+    # Non-blocking window
+    root.after(10, lambda: root.lift())
+    root.after(10, lambda: root.focus_force())
 
 def default_hsv():
     return (0, 50, 50), (179, 255, 255)
