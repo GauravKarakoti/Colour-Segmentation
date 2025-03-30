@@ -8,7 +8,8 @@ from segmentation_utils import *
 import time
 
 # Initialize logging
-logging.basicConfig(filename='error.log', level=logging.ERROR)
+logging.basicConfig(filename='error.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description="Segmentation of an image file.")
@@ -17,32 +18,46 @@ args = parser.parse_args()
 
 # Get the image path from command line argument or ask user for input
 image_path = args.image if args.image else input("Enter the image file path: ").strip()
+if image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')):
+    image_path = os.path.join('videos', image_path)  # Ensure the video path is correct
+
 
 # Try loading the image
 try:
-    img = load_image(image_path)  # Function from segmentation_utils
+    if image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')):
+        cap = load_video(image_path)  # Function from segmentation_utils
+        # Additional code to handle video processing would go here
+        exit(0)  # Placeholder for video processing
+    else:
+        img = load_image(image_path)  # Function from segmentation_utils
+
     if img is None:
         raise FileNotFoundError(f"Unable to open image: {image_path}")
     # Convert the image to HSV color space upfront
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 except FileNotFoundError:
-    logging.error(f"File not found: {image_path}")
+    logging.error(f"File not found: {image_path}. Please check the file path and try again.")
+
     print("Error: File not found. Please check the file path and try again.")
     exit(1)
 except ValueError as e:
-    logging.error(f"Value error: {e}")
+    logging.error(f"Value error: {e}. Please provide a valid image file.")
+
     print("Error: Invalid image format. Please provide a valid image file.")
     exit(1)
 except PermissionError:
-    logging.error(f"Permission denied: {image_path}")
+    logging.error(f"Permission denied: {image_path}. Check your file permissions.")
+
     print("Error: Permission denied. Please check your file permissions.")
     exit(1)
 except RuntimeError as e:
-    logging.error(f"Runtime error: {e}")
+    logging.error(f"Runtime error: {e}. Ensure the file is not corrupted and try again.")
+
     print("Error: Unable to load image. Please ensure the file is not corrupted and try again.")
     exit(1)
 except Exception as e:
-    logging.error(f"Unexpected error: {e}")
+    logging.error(f"Unexpected error: {e}. Check the error log for details.")
+
     print("Error: An unexpected error occurred. Please check the error log for details.")
     exit(1)
 
@@ -88,16 +103,17 @@ while True:
 
     # Get trackbar values
     lower = np.array([
-        cv2.getTrackbarPos("LH", "Tracking"),
+        min(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")),
         cv2.getTrackbarPos("LS", "Tracking"),
         cv2.getTrackbarPos("LV", "Tracking")
     ])
     
     upper = np.array([
-        cv2.getTrackbarPos("UH", "Tracking"),
+        max(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")),
         cv2.getTrackbarPos("US", "Tracking"),
         cv2.getTrackbarPos("UV", "Tracking")
     ])
+
 
     # Adjust kernel size
     kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))

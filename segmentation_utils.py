@@ -41,23 +41,28 @@ def load_image(uploaded_file):
         
     return resize_with_aspect_ratio(img, width=512)
 
+def load_video(uploaded_file):
+    # Save the uploaded file to a temporary location
+    temp_file_path = "temp_video.mp4"
+    with open(temp_file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    check_file_access(temp_file_path)  # Check if the video file exists and is accessible
 
-def load_video(video_path):
-    video_path = os.path.join('videos', video_path)
-    check_file_access(video_path)
+    print(f"Loading video from path: {temp_file_path}")  # Debug logging for video path
 
-    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')
-    if not video_path.lower().endswith(valid_video_extensions):
-        raise ValueError(f"Error: '{video_path}' is not a valid video file. Please provide a supported video format.")
+    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')  # Ensure the uploaded file has a valid extension
+
+    if not temp_file_path.lower().endswith(valid_video_extensions):
+        raise ValueError(f"Error: '{temp_file_path}' is not a valid video file. Please provide a supported video format.")
 
     try:
-        cap = cv2.VideoCapture(video_path)
+        cap = cv2.VideoCapture(temp_file_path)
         if not cap.isOpened():
-            raise ValueError(f"Error: Unable to open video file '{video_path}'. It may be corrupted or unsupported.")
+            raise ValueError(f"Error: Unable to open video file '{temp_file_path}'. It may be corrupted or unsupported.")
 
         return cap
     except Exception as e:
-        raise RuntimeError(f"Unexpected error while loading video '{video_path}': {str(e)}")
+        raise RuntimeError(f"Unexpected error while loading video '{temp_file_path}': {str(e)}")
 
 def release_video(cap):
     if cap is not None and cap.isOpened():
@@ -86,7 +91,6 @@ def create_display_windows(input_type):
         create_named_window(window)
 
 def create_trackbars(window_name="Tracking"):
-
     create_named_window(window_name)
     create_trackbar("LH", window_name, 0, 179, 0)
     create_trackbar("LS", window_name, 0, 255, 50)
@@ -96,7 +100,6 @@ def create_trackbars(window_name="Tracking"):
     create_trackbar("UV", window_name, 0, 255, 255)
 
 def get_trackbar_values(window_name="Tracking"):
-
     l_h = cv2.getTrackbarPos("LH", window_name)
     l_s = cv2.getTrackbarPos("LS", window_name)
     l_v = cv2.getTrackbarPos("LV", window_name)

@@ -15,7 +15,8 @@ if uploaded_file is not None:
         # Load and display the image
         image = load_image(uploaded_file)
 
-        st.image(image, caption='Uploaded Image', use_container_width=True)
+        st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', use_container_width=True)
+
 
 
         # HSV sliders for segmentation
@@ -47,8 +48,10 @@ if uploaded_file is not None:
 
     elif uploaded_file.type.startswith('video'):
         # Load and display the video
-        video = load_video(uploaded_file.name)
-        st.video(uploaded_file, use_container_width=True)
+        video = load_video(uploaded_file)  # Use the uploaded file object directly
+
+        st.video(uploaded_file)
+
 
 
         # Similar HSV sliders for video segmentation
@@ -61,14 +64,15 @@ if uploaded_file is not None:
         upper_v = st.sidebar.slider("Upper Value", 0, 255, 255)
 
         # Process video frame by frame (simplified for demonstration)
-        while True:
-            ret, frame = video.read()
-            if not ret:
-                break
+        if 'frame_index' not in st.session_state:
+            st.session_state.frame_index = 0
+
+        ret, frame = video.read()
+        if ret:
             lower_bound = np.array([lower_h, lower_s, lower_v])
             upper_bound = np.array([upper_h, upper_s, upper_v])
             mask, result = apply_mask(frame, lower_bound, upper_bound)
 
-            # Display results (this part can be improved for real-time display)
-            st.image(result, caption='Segmented Video Frame', use_column_width=True)
-
+            # Display results
+            st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
+            st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
