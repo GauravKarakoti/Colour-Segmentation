@@ -19,20 +19,28 @@ args = parser.parse_args()
 # Get the image path from command line argument or ask user for input
 image_path = args.image if args.image else input("Enter the image file path: ").strip()
 if image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')):
-    image_path = os.path.join('videos', image_path)  # Ensure the video path is correct
+    if image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')):
+        image_path = os.path.join('videos', image_path)  # Ensure the video path is correct
+
+
 
 
 # Try loading the image
 try:
     if image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')):
+        print(f"Attempting to load video from path: {image_path}")  # Debug logging for video path
         cap = load_video(image_path)  # Function from segmentation_utils
+
+
         # Additional code to handle video processing would go here
         exit(0)  # Placeholder for video processing
     else:
         img = load_image(image_path)  # Function from segmentation_utils
 
+    # Check if the image was loaded successfully
     if img is None:
         raise FileNotFoundError(f"Unable to open image: {image_path}")
+
     # Convert the image to HSV color space upfront
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 except FileNotFoundError:
@@ -114,7 +122,6 @@ while True:
         cv2.getTrackbarPos("UV", "Tracking")
     ])
 
-
     # Adjust kernel size
     kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
 
@@ -127,7 +134,6 @@ while True:
     else:
         mask, result = apply_mask(hsv_img, lower, upper, hsv_converted=True, kernel_size=kernel_size)
 
-
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
@@ -138,7 +144,6 @@ while True:
 
     # Display results
     display_results(original=img_resized, mask=mask_resized, result=result_resized)
-
 
     # Handle keypress events
     key = cv2.waitKey(10) # Slight delay to reduce CPU usage
@@ -157,6 +162,3 @@ while True:
     elapsed_time = time.time() - start_time
     sleep_time = max(0, frame_delay - elapsed_time)
     time.sleep(sleep_time)
-
-# Clean up
-cv2.destroyAllWindows()

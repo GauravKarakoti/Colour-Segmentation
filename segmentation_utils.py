@@ -33,30 +33,43 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
     return cv2.resize(image, dim, interpolation=inter)
 
 def load_image(uploaded_file):
-    # Read the image from the uploaded file
+    # Read the image from the uploaded file-like object
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-    if img is None or img.size == 0:
+
+    if img is None:
         raise ValueError("Error: Unable to load image. It may be corrupted or unsupported.")
+
         
     return resize_with_aspect_ratio(img, width=512)
 
 def load_video(uploaded_file):
-    # Save the uploaded file to a temporary location
+    # Read the video from the uploaded file-like object
     temp_file_path = "temp_video.mp4"
     with open(temp_file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    check_file_access(temp_file_path)  # Check if the video file exists and is accessible
+        f.write(uploaded_file.read())
+
+
+
 
     print(f"Loading video from path: {temp_file_path}")  # Debug logging for video path
+
+
+
 
     valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')  # Ensure the uploaded file has a valid extension
 
     if not temp_file_path.lower().endswith(valid_video_extensions):
         raise ValueError(f"Error: '{temp_file_path}' is not a valid video file. Please provide a supported video format.")
 
+
+
+
     try:
         cap = cv2.VideoCapture(temp_file_path)
+
+
+
         if not cap.isOpened():
             raise ValueError(f"Error: Unable to open video file '{temp_file_path}'. It may be corrupted or unsupported.")
 
