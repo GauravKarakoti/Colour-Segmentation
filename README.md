@@ -41,6 +41,7 @@
 <h3><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/tarikul-islam-anik/main/assets/images/Writing%20Hand%20Light%20Skin%20Tone.png" alt="Rocket" width="40" height="40" />Project Overview</h3>
 <p style="font-family:var(--ff-philosopher);">
 A suite of OpenCV-based tools for color-driven segmentation in images and videos</p>
+<a href="https://colour-segmentation.streamlit.app/">Deployed Here</a>
 
 ---
 
