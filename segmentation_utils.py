@@ -3,38 +3,12 @@ import numpy as np
 import os
 
 def nothing(x):
-    """
-    Callback function for trackbars. This function does nothing.
-    
-    Args:
-        x (int): The trackbar position (unused).
-    """
     pass
 
 def get_valid_kernel_size(value):
-    """
-    Ensures the kernel size is always an odd number and at least 1.
-    
-    Args:
-        value (int): The input kernel size.
-    
-    Returns:
-        int: The nearest odd kernel size (minimum value is 1).
-    """
     return max(1, value | 1)
 
 def check_file_access(file_path):
-    """
-    Checks if the given file exists and is accessible.
-    
-    Args:
-        file_path (str): The path to the file.
-    
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        ValueError: If the path is not a valid file.
-        PermissionError: If the file is not readable.
-    """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Error: File '{file_path}' does not exist.")
     if not os.path.isfile(file_path):
@@ -43,18 +17,6 @@ def check_file_access(file_path):
         raise PermissionError(f"Error: '{file_path}' is not readable or access is denied.")
 
 def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_AREA):
-    """
-    Resizes an image while maintaining its aspect ratio.
-    
-    Args:
-        image (numpy.ndarray): The input image.
-        width (int, optional): The desired width. Default is None.
-        height (int, optional): The desired height. Default is None.
-        inter (cv2.InterpolationFlags, optional): The interpolation method. Default is cv2.INTER_AREA.
-    
-    Returns:
-        numpy.ndarray: The resized image.
-    """
     dim = None
     (h, w) = image.shape[:2]
 
@@ -70,86 +32,56 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
 
     return cv2.resize(image, dim, interpolation=inter)
 
-def load_image(image_path):
-    """
-    Loads and resizes an image from the specified path.
-    
-    Args:
-        image_path (str): The name of the image file (assumed to be in the 'images' directory).
-    
-    Returns:
-        numpy.ndarray: The loaded and resized image.
-    
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        ValueError: If the file format is unsupported or corrupted.
-        RuntimeError: If an unexpected error occurs.
-    """
-    image_path = os.path.join('images', image_path)
-    check_file_access(image_path)
+def load_image(uploaded_file):
+    # Read the image from the uploaded file-like object
+    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-    valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp')
-    if not image_path.lower().endswith(valid_extensions):
-        raise ValueError(f"Error: '{image_path}' is not an image file. Please provide a valid image format.")
+    if img is None:
+        raise ValueError("Error: Unable to load image. It may be corrupted or unsupported.")
 
-    try:
-        img = cv2.imread(image_path)
-        if img is None or img.size == 0:
-            raise ValueError(f"Error: Unable to load image '{image_path}'. It may be corrupted or unsupported.")
-            
-        return resize_with_aspect_ratio(img, width=512)
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error while loading image '{image_path}': {str(e)}")
+        
+    return resize_with_aspect_ratio(img, width=512)
 
-def load_video(video_path):
-    """
-    Loads a video file and returns a VideoCapture object.
-    
-    Args:
-        video_path (str): The name of the video file (assumed to be in the 'videos' directory).
-    
-    Returns:
-        cv2.VideoCapture: The video capture object.
-    
-    Raises:
-        FileNotFoundError: If the video file does not exist.
-        ValueError: If the file format is unsupported.
-        RuntimeError: If an unexpected error occurs.
-    """
-    video_path = os.path.join('videos', video_path)
-    check_file_access(video_path)
+def load_video(uploaded_file):
+    # Read the video from the uploaded file-like object
+    temp_file_path = "temp_video.mp4"
+    with open(temp_file_path, "wb") as f:
+        f.write(uploaded_file.read())
 
-    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')
-    if not video_path.lower().endswith(valid_video_extensions):
-        raise ValueError(f"Error: '{video_path}' is not a valid video file. Please provide a supported video format.")
+
+
+
+    print(f"Loading video from path: {temp_file_path}")  # Debug logging for video path
+
+
+
+
+    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')  # Ensure the uploaded file has a valid extension
+
+    if not temp_file_path.lower().endswith(valid_video_extensions):
+        raise ValueError(f"Error: '{temp_file_path}' is not a valid video file. Please provide a supported video format.")
+
+
+
 
     try:
-        cap = cv2.VideoCapture(video_path)
+        cap = cv2.VideoCapture(temp_file_path)
+
+
+
         if not cap.isOpened():
-            raise ValueError(f"Error: Unable to open video file '{video_path}'. It may be corrupted or unsupported.")
+            raise ValueError(f"Error: Unable to open video file '{temp_file_path}'. It may be corrupted or unsupported.")
 
         return cap
     except Exception as e:
-        raise RuntimeError(f"Unexpected error while loading video '{video_path}': {str(e)}")
+        raise RuntimeError(f"Unexpected error while loading video '{temp_file_path}': {str(e)}")
 
 def release_video(cap):
-    """
-    Safely releases a VideoCapture object.
-    
-    Args:
-        cap (cv2.VideoCapture): The video capture object.
-    """
     if cap is not None and cap.isOpened():
         cap.release()
 
 def create_named_window(window_name, topmost=True):
-    """
-    Creates an OpenCV window with an optional topmost property.
-    
-    Args:
-        window_name (str): The name of the window.
-        topmost (bool, optional): Whether the window should stay on top. Default is True.
-    """
     try:
         cv2.namedWindow(window_name)
         if topmost:
@@ -160,29 +92,9 @@ def create_named_window(window_name, topmost=True):
         raise RuntimeError(f"Unexpected error while creating window '{window_name}': {str(e)}")
 
 def create_trackbar(name, window_name, min_val, max_val, default_val, callback=nothing):
-    """
-    Creates a single trackbar in the specified window.
-    
-    Args:
-        name (str): The name of the trackbar.
-        window_name (str): The name of the window.
-        min_val (int): Minimum value of the trackbar.
-        max_val (int): Maximum value of the trackbar.
-        default_val (int): Default value of the trackbar.
-        callback (function, optional): Callback function for the trackbar. Default is `nothing`.
-    """
     cv2.createTrackbar(name, window_name, default_val, max_val, callback)
 
 def create_display_windows(input_type):
-    """
-    Create windows for displaying images and ensure they stay on top.
-    
-    Args:
-        input_type (str): "img" for image processing, "video" for real-time video.
-
-    Raises:
-        ValueError: If the input_type is not "img" or "video".
-    """
     if input_type not in ["img", "video"]:
         raise ValueError("Invalid input_type. Use 'img' for image or 'video' for real-time processing.")
 
@@ -192,12 +104,6 @@ def create_display_windows(input_type):
         create_named_window(window)
 
 def create_trackbars(window_name="Tracking"):
-    """
-    Creates HSV trackbars for interactive color segmentation.
-    
-    Args:
-        window_name (str, optional): The name of the OpenCV window. Default is "Tracking".
-    """
     create_named_window(window_name)
     create_trackbar("LH", window_name, 0, 179, 0)
     create_trackbar("LS", window_name, 0, 255, 50)
@@ -207,15 +113,6 @@ def create_trackbars(window_name="Tracking"):
     create_trackbar("UV", window_name, 0, 255, 255)
 
 def get_trackbar_values(window_name="Tracking"):
-    """
-    Retrieves HSV values from trackbars.
-    
-    Args:
-        window_name (str, optional): The name of the OpenCV window. Default is "Tracking".
-    
-    Returns:
-        tuple: A pair of numpy arrays representing lower and upper HSV bounds.
-    """
     l_h = cv2.getTrackbarPos("LH", window_name)
     l_s = cv2.getTrackbarPos("LS", window_name)
     l_v = cv2.getTrackbarPos("LV", window_name)
