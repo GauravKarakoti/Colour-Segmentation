@@ -1,12 +1,13 @@
 .venv
 venv
-rgb_palette_with_text.png
-rgb_palette.png
-hsv_palette_with_text.png
-hsv_palette.png
+default_hsv_with_text.png
+default_hsv.png
+default_rgb_with_text.png
+default_rgb.png
 result.png
 mask.png
 __pycache__
 error.log
 segmentation_errors.log
 output.avi
+temp_video.mp4
