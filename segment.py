@@ -78,18 +78,19 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID') # Codec for AVI format
 out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width * 3, frame_height))
 frame_delay = 1 / fps  # Control FPS
 
+# Initialize the paused flag
+paused = False
+
 # Start the video processing loop
 while True:
     start_time = time.time()
 
     try:
-        ret, frame = cap.read()  # Read a frame from the video
-        if not ret:
-            print("End of video or unable to read frame. Exiting...")
-            break  # Exit when video ends or an error occurs
-
-        # Convert the frame to HSV color space
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        if not paused:
+            ret, frame = cap.read()  # Read a frame from the video
+            if not ret:
+                print("End of video or unable to read frame. Exiting...")
+                break  # Exit when video ends or an error occurs
 
         # Get the current values of the trackbars (lower and upper bounds for segmentation)
         lower, upper = get_trackbar_values("Tracking")
@@ -97,19 +98,13 @@ while True:
         kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
         kernel_size = get_valid_kernel_size(kernel_size)  # Ensure kernel size is at least 1x1
 
-        # Handle hue wrapping for colors like red (where lower hue > upper hue)
-        if upper[0] < lower[0]:  # Handle hue wrapping case
-            mask1, result1 = apply_mask(hsv_frame, lower, np.array([179, upper[1], upper[2]]),kernel_size=kernel_size)
-            mask2, result2 = apply_mask(hsv_frame, np.array([0, lower[1], lower[2]]), upper,kernel_size=kernel_size)
-            mask = cv2.bitwise_or(mask1, mask2)  # Combine the two masks
-            result = cv2.bitwise_or(result1, result2)  # Combine the results
-        else:
-            mask, result = apply_mask(hsv_frame, lower, upper,kernel_size=kernel_size)
+        # Apply mask directly on the BGR frame
+        mask, result = apply_mask(frame, lower, upper, kernel_size=kernel_size)
 
         # Resize video frame to match desired width (e.g., width=512)
-        frame = cv2.resize(frame, (frame_width, frame_height))
-        mask = cv2.resize(mask, (frame_width, frame_height))
-        result = cv2.resize(result, (frame_width, frame_height))
+        frame = cv2.resize(frame, (512, 512))
+        mask = cv2.resize(mask, (512, 512))
+        result = cv2.resize(result, (512, 512))
 
         # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
@@ -130,9 +125,17 @@ while True:
         # Write the combined frame to the output video
         out.write(combined_output)
 
+        key = cv2.waitKey(10) & 0xFF
+
         # Exit on ESC key
-        if cv2.waitKey(10) == 27:
+        if key == 27:
             break
+        elif key == 32:  # Toggle pause on spacebar press
+            paused = not paused
+            if paused:
+                print("Video paused. Press SPACE to resume.")
+            else:
+                print("Video resumed.")
 
         # ---- FPS Control ----
         elapsed_time = time.time() - start_time
