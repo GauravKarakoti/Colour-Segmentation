@@ -43,39 +43,45 @@ def load_image(uploaded_file):
         
     return resize_with_aspect_ratio(img, width=512)
 
-def load_video(uploaded_file):
-    # Read the video from the uploaded file-like object
-    temp_file_path = "temp_video.mp4"
-    with open(temp_file_path, "wb") as f:
-        f.write(uploaded_file.read())
+def load_video(input_source):
+    """
+    Loads video from a file path or file-like object.
 
+    Args:
+        input_source (str or file-like object): File path or uploaded file.
 
+    Returns:
+        cv2.VideoCapture: OpenCV video capture object.
+    """
+    # If input is a file-like object (e.g., from upload)
+    if hasattr(input_source, "read"):
+        temp_file_path = "temp_video.mp4"
+        
+        # Write the uploaded video to a temporary file
+        with open(temp_file_path, "wb") as f:
+            f.write(input_source.read())
 
-
-    print(f"Loading video from path: {temp_file_path}")  # Debug logging for video path
-
-
-
-
-    valid_video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv')  # Ensure the uploaded file has a valid extension
-
-    if not temp_file_path.lower().endswith(valid_video_extensions):
-        raise ValueError(f"Error: '{temp_file_path}' is not a valid video file. Please provide a supported video format.")
-
-
-
-
-    try:
+        print(f"Loading video from temporary file: {temp_file_path}")
         cap = cv2.VideoCapture(temp_file_path)
 
+        # Clean up temp file after use
+        if not cap.isOpened():
+            os.remove(temp_file_path)
+            raise ValueError("Error: Unable to open video file.")
+        return cap
 
+    # If input is a file path string
+    elif isinstance(input_source, str):
+        input_source = os.path.join("videos", input_source)
+        print(f"Loading video from path: {input_source}")
+        cap = cv2.VideoCapture(input_source)
 
         if not cap.isOpened():
-            raise ValueError(f"Error: Unable to open video file '{temp_file_path}'. It may be corrupted or unsupported.")
-
+            raise ValueError(f"Error: Unable to open video file '{input_source}'.")
         return cap
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error while loading video '{temp_file_path}': {str(e)}")
+
+    else:
+        raise TypeError("Invalid input source. Must be a file path or file-like object.")
 
 def release_video(cap):
     if cap is not None and cap.isOpened():

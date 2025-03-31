@@ -73,9 +73,29 @@ if not ret:
 height, width = frame.shape[:2]
 frame_height, frame_width = 512, 512
 
-# Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'XVID') # Codec for AVI format
-out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width * 3, frame_height))
+# --- Dynamic Codec Selection with Better Handling ---
+output_ext = output_path.split('.')[-1].lower()
+
+# Define codec mapping dictionary for better flexibility
+codec_map = {
+    'avi': ('XVID', '.avi'),
+    'mp4': ('mp4v', '.mp4'),
+    'mov': ('avc1', '.mov'),
+    'mkv': ('X264', '.mkv'),
+    'webm': ('VP80', '.webm'),
+}
+
+# Check if the extension is supported
+if output_ext in codec_map:
+    fourcc, valid_ext = codec_map[output_ext]
+    if output_ext != valid_ext[1:]:  # Ensure consistent extension
+        print(f"Correcting extension to {valid_ext}")
+        output_path = output_path.rsplit('.', 1)[0] + valid_ext
+else:
+    print(f"Unsupported format: .{output_ext}. Defaulting to AVI.")
+    fourcc, output_path = 'XVID', output_path.rsplit('.', 1)[0] + '.avi'
+
+out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*fourcc), fps, (frame_width * 3, frame_height))
 frame_delay = 1 / fps  # Control FPS
 
 # Initialize the paused flag
