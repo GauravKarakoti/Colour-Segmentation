@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image_path = "D:\\VS_Python\\Colour-Segmentation\\images\\image7.webp"  # Change this to your actual image path
+image_path = "images\\image7.webp" 
 img = cv2.imread(image_path)
 
 if img is None:
