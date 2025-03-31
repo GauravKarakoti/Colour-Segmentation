@@ -60,10 +60,9 @@ def draw_text_with_semi_transparent_bg(img, text, position, font_scale=0.7, colo
 
 
 def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
-     # Handle circular hue wrap-around
-    if l_h > u_h:
-        # Calculate the middle of the two ranges: (wraps around)
-        mid_hue = ((l_h + (u_h + 180)) // 2) % 180
+    if l_h > u_h:  # Handle Hue wrap-around
+        hue_range = list(range(l_h, 180)) + list(range(0, u_h + 1))
+        mid_hue = hue_range[len(hue_range) // 2]
     else:
         mid_hue = (l_h + u_h) // 2
 
