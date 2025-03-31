@@ -70,9 +70,14 @@ def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
     # Blend lower and upper HSV values
     blended_s = (l_s + u_s) // 2
     blended_v = (l_v + u_v) // 2
+    
+    # Create an HSV image and convert it to BGR
+    hsv_color = np.full((300, 900, 3), (mid_hue, blended_s, blended_v), dtype=np.uint8)
+    bgr_color = cv2.cvtColor(hsv_color, cv2.COLOR_HSV2BGR)
 
-    img[:] = [mid_hue, blended_s, blended_v]
-    text_color = (255, 255, 255)
+    # Update the image with the corrected BGR color
+    img[:] = bgr_color
+    text_color = (255, 255, 255) if blended_v < 128 else (0, 0, 0)
     draw_text_with_semi_transparent_bg(img, f"LH={l_h}, LS={l_s}, LV={l_v}", (20, 50), color=text_color)
     draw_text_with_semi_transparent_bg(img, f"UH={u_h}, US={u_s}, UV={u_v}", (20, 90), color=text_color)
     draw_text_with_semi_transparent_bg(img, "Press 'S' to save | Press 'I' for RGB Input | Press 'H' for HSV Input | Press 'ESC' to exit", (20, 280), font_scale=0.6, color=text_color)
