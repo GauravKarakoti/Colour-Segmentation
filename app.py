@@ -132,10 +132,18 @@ if uploaded_file is not None:
             upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
             upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
 
+        # Add kernel size slider
+        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+
         # Apply mask
         lower_bound = np.array([lower_h, lower_s, lower_v])
         upper_bound = np.array([upper_h, upper_s, upper_v])
         mask, result = apply_mask(image, lower_bound, upper_bound)
+
+        # Apply morphological operations
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)
+        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
         # Display results
         st.image(mask, caption='Mask', use_container_width=True)
@@ -169,6 +177,11 @@ if uploaded_file is not None:
             upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
             upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
             upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
+        
+        # Add kernel size slider
+        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+
 
         # Process video frame by frame (simplified for demonstration)
         if 'frame_index' not in st.session_state:
@@ -179,6 +192,10 @@ if uploaded_file is not None:
             lower_bound = np.array([lower_h, lower_s, lower_v])
             upper_bound = np.array([upper_h, upper_s, upper_v])
             mask, result = apply_mask(frame, lower_bound, upper_bound)
+
+            # Apply morphological operations
+            kernel = np.ones((kernel_size, kernel_size), np.uint8)
+            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
             # Display results
             st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
