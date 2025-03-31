@@ -105,10 +105,11 @@ def prompt_filename(title, default_name):
 
 # Frame rate control settings
 frame_delay = 1 / 30  # Target ~30 FPS
+prev_tick = cv2.getTickCount()
 
 # Main loop
 while True:
-    start_time = time.time()
+    current_tick = cv2.getTickCount()
 
     # Check if the "Tracking" window is still open
     if cv2.getWindowProperty("Tracking", cv2.WND_PROP_VISIBLE) < 1:
@@ -152,7 +153,10 @@ while True:
     display_results(original=img_resized, mask=mask_resized, result=result_resized)
 
     # Handle keypress events
-    key = cv2.waitKey(10) # Slight delay to reduce CPU usage
+    elapsed_time = (current_tick - prev_tick) / cv2.getTickFrequency()
+    wait_time = max(1, int((frame_delay - elapsed_time) * 1000))
+    
+    key = cv2.waitKey(wait_time) # Slight delay to reduce CPU usage
     if key == 27:  # ESC key 
         break
     elif key == ord('s'):  # 's' key to save mask and result
@@ -165,6 +169,4 @@ while True:
         print(f"Mask saved as {mask_filename}")
         print(f"Result saved as {result_filename}")
 
-    elapsed_time = time.time() - start_time
-    sleep_time = max(0, frame_delay - elapsed_time)
-    time.sleep(sleep_time)
+    prev_tick = current_tick

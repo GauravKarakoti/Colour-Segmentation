@@ -100,10 +100,11 @@ frame_delay = 1 / fps  # Control FPS
 
 # Initialize the paused flag
 paused = False
+prev_tick = cv2.getTickCount()
 
 # Start the video processing loop
 while True:
-    start_time = time.time()
+    current_tick = cv2.getTickCount()
 
     try:
         if not paused:
@@ -145,7 +146,9 @@ while True:
         # Write the combined frame to the output video
         out.write(combined_output)
 
-        key = cv2.waitKey(10) & 0xFF
+        elapsed_time = (current_tick - prev_tick) / cv2.getTickFrequency()
+        wait_time = max(1, int((1 / fps - elapsed_time) * 1000))
+        key = cv2.waitKey(wait_time) & 0xFF
 
         # Exit on ESC key
         if key == 27:
@@ -157,9 +160,7 @@ while True:
             else:
                 print("Video resumed.")
 
-        # ---- FPS Control ----
-        elapsed_time = time.time() - start_time
-        time.sleep(max(0, frame_delay - elapsed_time))
+        prev_tick = current_tick
 
     except cv2.error as e:
         logging.error(f"OpenCV error during processing: {str(e)}")

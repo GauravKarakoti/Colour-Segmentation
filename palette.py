@@ -201,9 +201,10 @@ def main():
     create_hsv_palette_window()
     create_rgb_palette_window()
 
-    frame_delay = 1 / 30  # 30 FPS
+    prev_tick = cv2.getTickCount()
+    frame_delay = 1 / 30  # Target FPS (30)
+
     while True:
-        start_time = time.time()
         if cv2.getWindowProperty("HSV Palette", cv2.WND_PROP_VISIBLE) < 1 or cv2.getWindowProperty("RGB Palette", cv2.WND_PROP_VISIBLE) < 1:
             break
 
@@ -231,7 +232,11 @@ def main():
             cv2.setTrackbarPos("US", "HSV Palette", us)
             cv2.setTrackbarPos("UV", "HSV Palette", uv)
 
-        key = cv2.waitKey(10) & 0xFF
+        current_tick = cv2.getTickCount()
+        elapsed_time = (current_tick - prev_tick) / cv2.getTickFrequency()
+        wait_time = max(1, int((frame_delay - elapsed_time) * 1000))
+
+        key = cv2.waitKey(wait_time) & 0xFF
         if key == 27:
             break
         elif key == ord('s'):
@@ -240,9 +245,8 @@ def main():
             start_rgb_window()
         elif key == ord('h'):
             start_hsv_window()
-
-        elapsed_time = time.time() - start_time
-        time.sleep(max(0, frame_delay - elapsed_time))
+            
+        prev_tick = current_tick
 
     cv2.destroyAllWindows()
 
