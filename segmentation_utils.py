@@ -33,15 +33,17 @@ def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_ARE
     return cv2.resize(image, dim, interpolation=inter)
 
 def load_image(uploaded_file):
-    # Read the image from the uploaded file-like object
-    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    if isinstance(uploaded_file, str):  # If it's a file path
+        uploaded_file = os.path.join("images", uploaded_file)
+        img = cv2.imread(uploaded_file, cv2.IMREAD_COLOR)
+    else:  # If it's a file-like object
+        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
     if img is None:
         raise ValueError("Error: Unable to load image. It may be corrupted or unsupported.")
 
-        
-    return resize_with_aspect_ratio(img, width=512)
+    return resize_with_aspect_ratio(img, width=512)  # Adjust as needed
 
 def load_video(input_source):
     """
