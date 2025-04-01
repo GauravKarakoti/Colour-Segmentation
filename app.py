@@ -147,7 +147,7 @@ elif nav_option == "Color Palette":
     hsv_color = np.full((300, 900, 3), (mid_hue, blended_s, blended_v), dtype=np.uint8)
 
     rgb_palette = np.zeros((300, 900, 3), np.uint8)
-    rgb_palette[:] = [b, g, r]
+    rgb_palette[:] = [r, g, b]
 
     st.image(hsv_color, caption="HSV Palette")
     st.image(rgb_palette, caption="RGB Palette")
