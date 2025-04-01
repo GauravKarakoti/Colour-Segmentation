@@ -4,7 +4,9 @@ import numpy as np
 from segmentation_utils import load_image, load_video, apply_mask, resize_with_aspect_ratio
 
 # Streamlit app title
-st.markdown("<h1 style='text-align: center; color: #2E7D32; font-size: 4em; margin-bottom: 20px; transition: color 0.3s, transform 0.3s; text-transform: uppercase;'>Image And Video Segmentation App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #2E7D32; font-size: 4em; margin-bottom: 20px; transition: color 0.3s, transform 0.3s; text-transform: uppercase;'>Image & Video Segmentation with Color Palette</h1>", unsafe_allow_html=True)
+
+nav_option = st.sidebar.radio("Navigation", ["Home","Color Palette", "Segmentation"])
 
 # Load custom CSS
 st.markdown("""
@@ -32,7 +34,6 @@ body {
 
 /* Button Style */
 .stButton {
-    background-color: #4CAF50; /* Green background for buttons */
     color: white; /* White text color */
     border: none; /* Remove border */
     padding: 12px 24px; /* Add padding */
@@ -47,7 +48,6 @@ body {
 }
 
 .stButton:hover {
-    background-color: #66BB6A; /* Lighter green on hover */
     transform: scale(1.05); /* Slightly enlarge button on hover */
 }
 
@@ -106,97 +106,149 @@ body {
 </style>
 """, unsafe_allow_html=True)
 
-# Upload image or video
-uploaded_file = st.file_uploader("Choose an image or video...", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'], label_visibility="collapsed")
+if nav_option == "Home":
+    st.markdown("<h2 style='text-align:center;'>Welcome to the Segmentation & Color Palette App 🎨</h2>",unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center;'>Use the sidebar to navigate different sections.</p>",unsafe_allow_html=True)
+elif nav_option == "Upload":
+    st.write("## Upload Your Image or Video")
+    uploaded_file = st.file_uploader("Choose a file...", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'])
+    
+    if uploaded_file:
+        st.success("File uploaded successfully!")
 
-if uploaded_file is not None:
-    # Check if the uploaded file is an image or video
-    if uploaded_file.type.startswith('image'):
-        # Load and display the image
-        image = load_image(uploaded_file)
+elif nav_option == "Color Palette":
+    st.write("## Adjust Your Color Palette 🎨")
+    st.sidebar.header("HSV Segmentation")
+    l_h = st.sidebar.slider("Lower Hue", 0, 179, 0)
+    l_s = st.sidebar.slider("Lower Saturation", 0, 255, 50)
+    l_v = st.sidebar.slider("Lower Value", 0, 255, 50)
+    u_h = st.sidebar.slider("Upper Hue", 0, 179, 179)
+    u_s = st.sidebar.slider("Upper Saturation", 0, 255, 255)
+    u_v = st.sidebar.slider("Upper Value", 0, 255, 255)
 
-        st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', use_container_width=True, clamp=True)
-        st.markdown("<p style='text-align: center;'>This is the uploaded image.</p>", unsafe_allow_html=True)
+    # RGB Palette
+    st.sidebar.header("RGB Color Picker")
+    r = st.sidebar.slider("Red", 0, 255, 0)
+    g = st.sidebar.slider("Green", 0, 255, 0)
+    b = st.sidebar.slider("Blue", 0, 255, 0)
 
-        # HSV sliders for segmentation
-        st.sidebar.header("HSV Segmentation Parameters")
-        st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
+    # Display Colors
+    if l_h > u_h:  # Handle Hue wrap-around
+        hue_range = list(range(l_h, 180)) + list(range(0, u_h + 1))
+        mid_hue = hue_range[len(hue_range) // 2]
+    else:
+        mid_hue = (l_h + u_h) // 2
 
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
-            lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
-            lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
-        with col2:
-            upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
-            upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
-            upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
+    # Blend lower and upper HSV values
+    blended_s = (l_s + u_s) // 2
+    blended_v = (l_v + u_v) // 2
+    
+    # Create an HSV image and convert it to BGR
+    hsv_color = np.full((300, 900, 3), (mid_hue, blended_s, blended_v), dtype=np.uint8)
 
-        # Add kernel size slider
-        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+    rgb_palette = np.zeros((300, 900, 3), np.uint8)
+    rgb_palette[:] = [b, g, r]
 
-        # Apply mask
-        lower_bound = np.array([lower_h, lower_s, lower_v])
-        upper_bound = np.array([upper_h, upper_s, upper_v])
-        mask, result = apply_mask(image, lower_bound, upper_bound)
+    st.image(hsv_color, caption="HSV Palette")
+    st.image(rgb_palette, caption="RGB Palette")
 
-        # Apply morphological operations
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+    if st.button("Save Palettes"):
+        hsv_filename = "hsv_palette.png"
+        rgb_filename = "rgb_palette.png"
+        cv2.imwrite(hsv_filename, hsv_color)
+        cv2.imwrite(rgb_filename, rgb_palette)
+        st.success(f"Palettes saved as `{hsv_filename}` and `{rgb_filename}`!")
 
-        # Display results
-        st.image(mask, caption='Mask', use_container_width=True)
-        st.image(result, caption='Segmented Result', use_container_width=True)
+elif nav_option == "Segmentation":
+    uploaded_file = st.file_uploader("Choose an image or video...", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'], label_visibility="collapsed")
+    if uploaded_file is not None:
+        # Check if the uploaded file is an image or video
+        if uploaded_file.type.startswith('image'):
+            # Load and display the image
+            image = load_image(uploaded_file)
 
-        # Save results
-        if st.button("Save Results", key="save_results", help="Click to save the segmented results."):
-            st.success("Results have been saved successfully!")
-            mask_filename = "mask.png"
-            result_filename = "result.png"
-            cv2.imwrite(mask_filename, mask)
-            cv2.imwrite(result_filename, result)
-            st.success(f"Results saved as {mask_filename} and {result_filename}")
+            st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', use_container_width=True, clamp=True)
+            st.markdown("<p style='text-align: center;'>This is the uploaded image.</p>", unsafe_allow_html=True)
 
-    elif uploaded_file.type.startswith('video'):
-        # Load and display the video
-        video = load_video(uploaded_file)  # Use the uploaded file object directly
+            # HSV sliders for segmentation
+            st.sidebar.header("HSV Segmentation Parameters")
+            st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
 
-        st.video(uploaded_file)
+            col1, col2 = st.sidebar.columns(2)
+            with col1:
+                lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
+                lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
+                lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
+            with col2:
+                upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
+                upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
+                upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
 
-        # HSV sliders for video segmentation
-        st.sidebar.header("HSV Segmentation Parameters")
-        st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
+            # Add kernel size slider
+            kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+            kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
 
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
-            lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
-            lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
-        with col2:
-            upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
-            upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
-            upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
-        
-        # Add kernel size slider
-        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
-
-
-        # Process video frame by frame (simplified for demonstration)
-        if 'frame_index' not in st.session_state:
-            st.session_state.frame_index = 0
-
-        ret, frame = video.read()
-        if ret:
+            # Apply mask
             lower_bound = np.array([lower_h, lower_s, lower_v])
             upper_bound = np.array([upper_h, upper_s, upper_v])
-            mask, result = apply_mask(frame, lower_bound, upper_bound)
+            mask, result = apply_mask(image, lower_bound, upper_bound)
 
             # Apply morphological operations
             kernel = np.ones((kernel_size, kernel_size), np.uint8)
             result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
             # Display results
-            st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
-            st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+            st.image(mask, caption='Mask', use_container_width=True)
+            st.image(result, caption='Segmented Result', use_container_width=True)
+
+            # Save results
+            if st.button("Save Results", key="save_results", help="Click to save the segmented results."):
+                st.success("Results have been saved successfully!")
+                mask_filename = "mask.png"
+                result_filename = "result.png"
+                cv2.imwrite(mask_filename, mask)
+                cv2.imwrite(result_filename, result)
+                st.success(f"Results saved as {mask_filename} and {result_filename}")
+
+        elif uploaded_file.type.startswith('video'):
+            # Load and display the video
+            video = load_video(uploaded_file)  # Use the uploaded file object directly
+
+            st.video(uploaded_file)
+
+            # HSV sliders for video segmentation
+            st.sidebar.header("HSV Segmentation Parameters")
+            st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
+
+            col1, col2 = st.sidebar.columns(2)
+            with col1:
+                lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
+                lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
+                lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
+            with col2:
+                upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
+                upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
+                upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
+            
+            # Add kernel size slider
+            kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+            kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+
+
+            # Process video frame by frame (simplified for demonstration)
+            if 'frame_index' not in st.session_state:
+                st.session_state.frame_index = 0
+
+            ret, frame = video.read()
+            if ret:
+                lower_bound = np.array([lower_h, lower_s, lower_v])
+                upper_bound = np.array([upper_h, upper_s, upper_v])
+                mask, result = apply_mask(frame, lower_bound, upper_bound)
+
+                # Apply morphological operations
+                kernel = np.ones((kernel_size, kernel_size), np.uint8)
+                result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+
+                # Display results
+                st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
+                st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
