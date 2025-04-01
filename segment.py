@@ -20,6 +20,9 @@ video_path = args.video if args.video else input("Enter the video file path: ").
 output_path = args.output
 fps = args.fps
 
+# Validate FPS input
+fps = validate_numeric_input(fps, 1, 120, 30)
+
 # Load the video
 try:
     cap = load_video(video_path)
@@ -116,8 +119,9 @@ while True:
         # Get the current values of the trackbars (lower and upper bounds for segmentation)
         lower, upper = get_trackbar_values("Tracking")
 
-        kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")  # Trackbar to control kernel size
-        kernel_size = get_valid_kernel_size(kernel_size)  # Ensure kernel size is at least 1x1
+        kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")
+        kernel_size = validate_numeric_input(kernel_size, 1, 30, 1)  # Ensure valid kernel size
+        kernel_size = get_valid_kernel_size(kernel_size)
 
         # Apply mask directly on the BGR frame
         mask, result = apply_mask(frame, lower, upper, kernel_size=kernel_size)
@@ -159,6 +163,18 @@ while True:
                 print("Video paused. Press SPACE to resume.")
             else:
                 print("Video resumed.")
+        elif key == ord('s'):  # Save current frame, mask, and result
+            frame_filename = prompt_filename("Frame Image", "frame", ["png", "jpg"])
+            mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
+            result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
+
+            cv2.imwrite(frame_filename, frame)
+            cv2.imwrite(mask_filename, mask)
+            cv2.imwrite(result_filename, result)
+
+            print(f"Frame saved as {frame_filename}")
+            print(f"Mask saved as {mask_filename}")
+            print(f"Result saved as {result_filename}")
 
         prev_tick = current_tick
 

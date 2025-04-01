@@ -188,3 +188,51 @@ def display_results(original=None, mask=None, result=None, frame=None):
         raise RuntimeError(f"OpenCV error during display: {str(e)}")
     except Exception as e:
         raise RuntimeError(f"Unexpected error during display: {str(e)}")
+
+def validate_numeric_input(value, min_val, max_val, default_val):
+    """
+    Validate numeric input to ensure it is within the specified range.
+    :param value: Input value to validate.
+    :param min_val: Minimum allowed value.
+    :param max_val: Maximum allowed value.
+    :param default_val: Default value to return if validation fails.
+    :return: Validated value.
+    """
+    try:
+        value = int(float(value))  # Handle float inputs by converting to int
+        if min_val <= value <= max_val:
+            return value
+    except (ValueError, TypeError):
+        pass
+    return default_val
+
+def validate_filename(filename, default_name):
+    """
+    Validate a filename to ensure it is safe and valid.
+    :param filename: Input filename.
+    :param default_name: Default name to use if validation fails.
+    :return: Validated filename.
+    """
+    invalid_chars = r'<>:"/\|?*'
+    for char in invalid_chars:
+        filename = filename.replace(char, "_")
+    return filename.strip() or default_name
+
+def validate_filename_with_extension(filename, default_name, valid_extensions):
+    """
+    Validate a filename to ensure it is safe, valid, and has a proper extension.
+    :param filename: Input filename.
+    :param default_name: Default name to use if validation fails.
+    :param valid_extensions: List of valid file extensions (e.g., ['png', 'jpg']).
+    :return: Validated filename with a valid extension.
+    """
+    invalid_chars = r'<>:"/\|?*'
+    for char in invalid_chars:
+        filename = filename.replace(char, "_")
+    filename = filename.strip() or default_name
+
+    # Ensure the filename has a valid extension
+    if not any(filename.lower().endswith(f".{ext}") for ext in valid_extensions):
+        filename += f".{valid_extensions[0]}"  # Default to the first valid extension
+
+    return filename
