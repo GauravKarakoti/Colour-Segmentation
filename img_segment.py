@@ -130,12 +130,13 @@ while True:
     ])
 
     # Adjust kernel size
-    kernel_size = get_valid_kernel_size(validate_numeric_input(cv2.getTrackbarPos("K_Size", "Tracking"), 1, 30, 1))
+    kernel_size = validate_numeric_input(cv2.getTrackbarPos("K_Size", "Tracking"), 1, 30, 1)
+    kernel_size = get_valid_kernel_size(kernel_size)  # Ensure kernel size is odd and valid
 
     # Handle hue wrapping
     if upper[0] < lower[0]:
-        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]), hsv_converted=True, kernel_size=kernel_size)
-        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper, hsv_converted=True, kernel_size=kernel_size)
+        mask1, result1 = apply_mask(hsv_img, lower, np.array([179, upper[1], upper[2]]), hsv_converted=True, kernel_size=kernel_size, apply_morph=True)
+        mask2, result2 = apply_mask(hsv_img, np.array([0, lower[1], lower[2]]), upper, hsv_converted=True, kernel_size=kernel_size, apply_morph=True)
         mask = cv2.bitwise_or(mask1, mask2)
         result = cv2.bitwise_or(result1, result2)
     else:
