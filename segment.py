@@ -101,6 +101,26 @@ else:
 out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*fourcc), fps, (frame_width * 3, frame_height))
 frame_delay = 1 / fps  # Control FPS
 
+# Function to resize an image while maintaining aspect ratio
+def resize_with_aspect_ratio(image, target_width, target_height):
+    h, w = image.shape[:2]
+    scale = min(target_width / w, target_height / h)
+    new_width = int(w * scale)
+    new_height = int(h * scale)
+    resized_image = cv2.resize(image, (new_width, new_height))
+    
+    # Check if the image is single-channel or multi-channel
+    if len(image.shape) == 2:  # Single-channel (e.g., grayscale)
+        canvas = np.zeros((target_height, target_width), dtype=np.uint8)
+    else:  # Multi-channel (e.g., color)
+        canvas = np.zeros((target_height, target_width, 3), dtype=np.uint8)
+    
+    # Center the resized image on the canvas
+    y_offset = (target_height - new_height) // 2
+    x_offset = (target_width - new_width) // 2
+    canvas[y_offset:y_offset + new_height, x_offset:x_offset + new_width] = resized_image
+    return canvas
+
 # Initialize the paused flag
 paused = False
 prev_tick = cv2.getTickCount()
@@ -126,10 +146,10 @@ while True:
         # Apply mask directly on the BGR frame
         mask, result = apply_mask(frame, lower, upper, kernel_size=kernel_size)
 
-        # Resize video frame to match desired width (e.g., width=512)
-        frame = cv2.resize(frame, (512, 512))
-        mask = cv2.resize(mask, (512, 512))
-        result = cv2.resize(result, (512, 512))
+        # Resize video frame, mask, and result while maintaining aspect ratio
+        frame = resize_with_aspect_ratio(frame, frame_width, frame_height)
+        mask = resize_with_aspect_ratio(mask, frame_width, frame_height)
+        result = resize_with_aspect_ratio(result, frame_width, frame_height)
 
         # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
         kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
