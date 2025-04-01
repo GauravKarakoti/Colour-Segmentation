@@ -101,6 +101,12 @@ def prompt_filename(title, default_name, valid_extensions):
     root = tk.Tk()
     root.withdraw()  
     filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name)
+    
+    # Handle case where user cancels the dialog
+    if filename is None:
+        print(f"Operation canceled. Using default filename: {default_name}")
+        filename = default_name
+
     return validate_filename_with_extension(filename, default_name, valid_extensions)
 
 # Frame rate control settings
@@ -164,8 +170,11 @@ while True:
         mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
         result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
 
+        # Convert result to BGR before saving
+        result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
+
         cv2.imwrite(mask_filename, mask)
-        cv2.imwrite(result_filename, result)
+        cv2.imwrite(result_filename, result_bgr)
 
         print(f"Mask saved as {mask_filename}")
         print(f"Result saved as {result_filename}")
