@@ -11,3 +11,5 @@ error.log
 segmentation_errors.log
 output.avi
 temp_video.mp4
+hsv_palette.png
+rgb_palette.png
