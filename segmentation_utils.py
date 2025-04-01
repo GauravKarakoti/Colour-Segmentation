@@ -134,7 +134,7 @@ def get_trackbar_values(window_name="Tracking"):
 
     return lower_bound, upper_bound
 
-def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1):
+def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1, apply_morph=True):
     """
     Apply a mask to the image based on the given lower and upper HSV bounds.
     :param image: Input image (BGR or HSV depending on hsv_converted flag)
@@ -142,6 +142,7 @@ def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1):
     :param upper: Upper HSV bound
     :param hsv_converted: Boolean indicating if the image is already in HSV
     :param kernel_size: Size of the morphological kernel for post-processing
+    :param apply_morph: Boolean indicating whether to apply morphological operations
     :return: Tuple of (mask, result)
     """
     try:
@@ -151,8 +152,9 @@ def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1):
         mask = cv2.inRange(hsv_image, lower, upper)
         result = cv2.bitwise_and(image, image, mask=mask)
 
-        # Apply morphological operations if kernel_size > 1
-        if kernel_size > 1:
+        # Apply morphological operations if apply_morph is True and kernel_size > 1
+        if apply_morph and kernel_size > 1:
+            kernel_size = get_valid_kernel_size(kernel_size)  # Ensure kernel size is odd and valid
             kernel = np.ones((kernel_size, kernel_size), np.uint8)
             mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
             result = cv2.bitwise_and(image, image, mask=mask)
