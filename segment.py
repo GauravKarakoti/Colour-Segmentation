@@ -168,9 +168,12 @@ while True:
             mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
             result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
 
+            # Convert result to BGR before saving
+            result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
+
             cv2.imwrite(frame_filename, frame)
             cv2.imwrite(mask_filename, mask)
-            cv2.imwrite(result_filename, result)
+            cv2.imwrite(result_filename, result_bgr)
 
             print(f"Frame saved as {frame_filename}")
             print(f"Mask saved as {mask_filename}")
