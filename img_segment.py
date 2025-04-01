@@ -97,11 +97,11 @@ cv2.createTrackbar("K_Size", "Tracking", 1, 30, nothing)
 
 create_display_windows(input_type='img')
 
-def prompt_filename(title, default_name):
+def prompt_filename(title, default_name, valid_extensions):
     root = tk.Tk()
     root.withdraw()  
     filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name)
-    return filename if filename else default_name
+    return validate_filename_with_extension(filename, default_name, valid_extensions)
 
 # Frame rate control settings
 frame_delay = 1 / 30  # Target ~30 FPS
@@ -118,19 +118,19 @@ while True:
 
     # Get trackbar values
     lower = np.array([
-        min(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")),
-        cv2.getTrackbarPos("LS", "Tracking"),
-        cv2.getTrackbarPos("LV", "Tracking")
+        validate_numeric_input(min(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")), 0, 179, 0),
+        validate_numeric_input(cv2.getTrackbarPos("LS", "Tracking"), 0, 255, 50),
+        validate_numeric_input(cv2.getTrackbarPos("LV", "Tracking"), 0, 255, 50)
     ])
     
     upper = np.array([
-        max(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")),
-        cv2.getTrackbarPos("US", "Tracking"),
-        cv2.getTrackbarPos("UV", "Tracking")
+        validate_numeric_input(max(cv2.getTrackbarPos("LH", "Tracking"), cv2.getTrackbarPos("UH", "Tracking")), 0, 179, 179),
+        validate_numeric_input(cv2.getTrackbarPos("US", "Tracking"), 0, 255, 255),
+        validate_numeric_input(cv2.getTrackbarPos("UV", "Tracking"), 0, 255, 255)
     ])
 
     # Adjust kernel size
-    kernel_size = get_valid_kernel_size(cv2.getTrackbarPos("K_Size", "Tracking"))
+    kernel_size = get_valid_kernel_size(validate_numeric_input(cv2.getTrackbarPos("K_Size", "Tracking"), 1, 30, 1))
 
     # Handle hue wrapping
     if upper[0] < lower[0]:
@@ -160,8 +160,8 @@ while True:
     if key == 27:  # ESC key 
         break
     elif key == ord('s'):  # 's' key to save mask and result
-        mask_filename = prompt_filename("Mask Image", "mask") + ".png"
-        result_filename = prompt_filename("Result Image", "result") + ".png"
+        mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
+        result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
 
         cv2.imwrite(mask_filename, mask)
         cv2.imwrite(result_filename, result)
