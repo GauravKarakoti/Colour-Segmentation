@@ -100,12 +100,22 @@ create_display_windows(input_type='img')
 def prompt_filename(title, default_name, valid_extensions):
     root = tk.Tk()
     root.withdraw()  
-    filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name)
+    cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 0)
+    cv2.setWindowProperty("Mask", cv2.WND_PROP_TOPMOST, 0)
+    cv2.setWindowProperty("Result", cv2.WND_PROP_TOPMOST, 0)
+    cv2.setWindowProperty("Original", cv2.WND_PROP_TOPMOST, 0)
+
+    filename = simpledialog.askstring(title, f"Enter filename for {title} (without extension):", initialvalue=default_name,parent=root)
     
     # Handle case where user cancels or closes the dialog
     if not filename:
         print(f"Operation canceled. {title} will not be saved.")
         return None
+    root.destroy()
+    cv2.setWindowProperty("Tracking", cv2.WND_PROP_TOPMOST, 1)
+    cv2.setWindowProperty("Mask", cv2.WND_PROP_TOPMOST, 1)
+    cv2.setWindowProperty("Result", cv2.WND_PROP_TOPMOST, 1)
+    cv2.setWindowProperty("Original", cv2.WND_PROP_TOPMOST, 1)
 
     return validate_filename_with_extension(filename, default_name, valid_extensions)
 
