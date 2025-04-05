@@ -1,11 +1,5 @@
 numpy
 opencv-python-headless==4.9.0.80
-libgl1 
-libglib2.0-0
-libsm6
-libxrender1
-libxext6
-libGL.so.1
 streamlit==1.35.0
 argparse
 logging
