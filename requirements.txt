@@ -1,5 +1,7 @@
 numpy
 opencv-python-headless>=4.5.5
+libgl1 
+libglib2.0-0
 streamlit
 argparse
 logging
