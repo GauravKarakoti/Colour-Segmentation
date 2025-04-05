@@ -1,8 +1,14 @@
 numpy
-opencv-python-headless>=4.5.5
+opencv-python-headless==4.9.0.80
 libgl1 
 libglib2.0-0
-streamlit
+libsm6
+libxrender1
+libxext6
+streamlit==1.35.0
 argparse
 logging
 opencv-python
+rich==14.0.0
+markdown-it-py==3.0.0
+pygments==2.19.1
