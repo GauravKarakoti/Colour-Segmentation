@@ -212,7 +212,7 @@ elif nav_option == "Segmentation":
 
         elif uploaded_file.type.startswith('video'):
             # Load and display the video
-            video = load_video(uploaded_file)  # Use the uploaded file object directly
+            video, temp_file_path = load_video(uploaded_file)  # Get temp file path for cleanup
 
             st.video(uploaded_file)
 
@@ -229,7 +229,7 @@ elif nav_option == "Segmentation":
                 upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
                 upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
                 upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
-            
+
             # Add kernel size slider
             kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
             kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
@@ -242,16 +242,22 @@ elif nav_option == "Segmentation":
             stframe_mask = st.empty()  # Placeholder for mask frame
             stframe_result = st.empty()  # Placeholder for segmented result frame
 
-            while True:
-                ret, frame = video.read()
-                if not ret:
-                    break  # Exit loop if no more frames
+            try:
+                while True:
+                    ret, frame = video.read()
+                    if not ret:
+                        break  # Exit loop if no more frames
 
-                mask, result = apply_mask(frame, lower_bound, upper_bound)
+                    mask, result = apply_mask(frame, lower_bound, upper_bound)
 
-                # Apply morphological operations
-                result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+                    # Apply morphological operations
+                    result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
-                # Display results
-                stframe_mask.image(mask, caption='Mask Frame', use_container_width=True)
-                stframe_result.image(result, caption='Segmented Video Frame', use_container_width=True)
+                    # Display results
+                    stframe_mask.image(mask, caption='Mask Frame', use_container_width=True)
+                    stframe_result.image(result, caption='Segmented Video Frame', use_container_width=True)
+            finally:
+                # Release video and clean up temp file
+                release_video(video)
+                if temp_file_path and os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
