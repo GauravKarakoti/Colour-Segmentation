@@ -2,8 +2,9 @@ import cv2
 import argparse
 import numpy as np
 import logging
-from segmentation_utils import *  # Assuming this imports required utilities
-import time
+from segmentation_utils import validate_numeric_input,load_video,create_display_windows,get_trackbar_values,apply_mask,get_valid_kernel_size,display_results
+import tkinter as tk
+from tkinter import simpledialog
 
 # Initialize logging
 logging.basicConfig(filename='segmentation_errors.log', level=logging.ERROR)
@@ -57,6 +58,25 @@ def create_trackbars(window_name):
 
 def nothing(x):
     pass
+
+def prompt_filename(title, default_name, filetypes):
+    root = tk.Tk()
+    root.withdraw()  
+
+    root.attributes('-topmost', True)  
+    root.lift()  
+    root.after(100,lambda: root.focus_force())
+
+    filename = simpledialog.askstring(
+        title, f"Enter filename for {title} (without extension):", initialvalue=default_name
+    )
+
+    if filename is None:
+        print(f"Operation canceled. Using default filename: {default_name}")
+        filename = default_name
+
+    root.destroy()  
+    return filename
 
 create_display_windows(input_type='video')
 
@@ -126,91 +146,99 @@ paused = False
 prev_tick = cv2.getTickCount()
 
 # Start the video processing loop
-while True:
-    current_tick = cv2.getTickCount()
+try:
+    while True:
+        current_tick = cv2.getTickCount()
 
-    try:
-        if not paused:
-            ret, frame = cap.read()  # Read a frame from the video
-            if not ret:
-                print("End of video or unable to read frame. Exiting...")
-                break  # Exit when video ends or an error occurs
+        try:
+            if not paused:
+                ret, frame = cap.read()  # Read a frame from the video
+                if not ret:
+                    print("End of video or unable to read frame. Exiting...")
+                    break  # Exit when video ends or an error occurs
 
-        # Get the current values of the trackbars (lower and upper bounds for segmentation)
-        lower, upper = get_trackbar_values("Tracking")
+            # Get the current values of the trackbars (lower and upper bounds for segmentation)
+            lower, upper = get_trackbar_values("Tracking")
 
-        kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")
-        kernel_size = validate_numeric_input(kernel_size, 1, 30, 1)  # Ensure valid kernel size
-        kernel_size = get_valid_kernel_size(kernel_size)
+            kernel_size = cv2.getTrackbarPos("Kernel Size", "Tracking")
+            kernel_size = validate_numeric_input(kernel_size, 1, 30, 1)  # Ensure valid kernel size
+            kernel_size = get_valid_kernel_size(kernel_size)
 
-        # Apply mask directly on the BGR frame
-        mask, result = apply_mask(frame, lower, upper, kernel_size=kernel_size)
+            # Apply mask directly on the BGR frame
+            mask, result = apply_mask(frame, lower, upper, kernel_size=kernel_size)
 
-        # Resize video frame, mask, and result while maintaining aspect ratio
-        frame = resize_with_aspect_ratio(frame, frame_width, frame_height)
-        mask = resize_with_aspect_ratio(mask, frame_width, frame_height)
-        result = resize_with_aspect_ratio(result, frame_width, frame_height)
+            # Resize video frame, mask, and result while maintaining aspect ratio
+            frame = resize_with_aspect_ratio(frame, frame_width, frame_height)
+            mask = resize_with_aspect_ratio(mask, frame_width, frame_height)
+            result = resize_with_aspect_ratio(result, frame_width, frame_height)
 
-        # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
-        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
+            # Adjustable Morphology Parameters: Dynamically adjust kernel size using trackbars
+            kernel = np.ones((kernel_size, kernel_size), np.uint8)  # Create a kernel of specified size
+            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)  # Apply opening (dilation + erosion)
 
-        # Display the original frame in the "Original" window
-        cv2.imshow("Original", frame)
+            # Display the original frame in the "Original" window
+            cv2.imshow("Original", frame)
 
-        # Display the mask and result side by side in the "Tracking" window
-        display_results(frame=frame, mask=mask, result=result)
+            # Display the mask and result side by side in the "Tracking" window
+            display_results(frame=frame, mask=mask, result=result)
 
-        # Convert mask to 3-channel image for saving
-        mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-        
-        # Combine results into a single frame
-        combined_output = np.hstack((frame, mask_3ch, result))
-        
-        # Write the combined frame to the output video
-        out.write(combined_output)
+            # Convert mask to 3-channel image for saving
+            mask_3ch = cv2.applyColorMap(mask, cv2.COLOR_GRAY2BGR)
+            
+            # Combine results into a single frame
+            combined_output = np.hstack((frame, mask_3ch, result))
+            
+            # Write the combined frame to the output video
+            try:
+                if combined_output.shape[1] == frame_width * 3 and combined_output.shape[0] == frame_height:
+                    out.write(combined_output)
+                else:
+                    raise ValueError("Combined output frame has invalid dimensions.")
+            except Exception as e:
+                logging.error(f"Error writing frame: {str(e)}")
 
-        elapsed_time = (current_tick - prev_tick) / cv2.getTickFrequency()
-        wait_time = max(1, int((1 / fps - elapsed_time) * 1000))
-        key = cv2.waitKey(wait_time) & 0xFF
+            elapsed_time = (current_tick - prev_tick) / cv2.getTickFrequency()
+            wait_time = max(1, int((1 / fps - elapsed_time) * 1000))
+            key = cv2.waitKey(wait_time) & 0xFF
 
-        # Exit on ESC key
-        if key == 27:
+            # Exit on ESC key
+            if key == 27:
+                break
+            elif key == 32:  # Toggle pause on spacebar press
+                paused = not paused
+                if paused:
+                    print("Video paused. Press SPACE to resume.")
+                else:
+                    print("Video resumed.")
+            elif key == ord('s'):  # Save current frame, mask, and result
+                frame_filename = prompt_filename("Frame Image", "frame", ["png", "jpg"])
+                mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
+                result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
+
+                # Convert result to BGR before saving
+                result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
+
+                cv2.imwrite(frame_filename, frame)
+                cv2.imwrite(mask_filename, mask)
+                cv2.imwrite(result_filename, result_bgr)
+
+                print(f"Frame saved as {frame_filename}")
+                print(f"Mask saved as {mask_filename}")
+                print(f"Result saved as {result_filename}")
+
+            prev_tick = current_tick
+
+        except cv2.error as e:
+            logging.error(f"OpenCV error during processing: {str(e)}")
+            print("Error: An error occurred during video processing. Check the log file for details.")
             break
-        elif key == 32:  # Toggle pause on spacebar press
-            paused = not paused
-            if paused:
-                print("Video paused. Press SPACE to resume.")
-            else:
-                print("Video resumed.")
-        elif key == ord('s'):  # Save current frame, mask, and result
-            frame_filename = prompt_filename("Frame Image", "frame", ["png", "jpg"])
-            mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
-            result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
-
-            # Convert result to BGR before saving
-            result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
-
-            cv2.imwrite(frame_filename, frame)
-            cv2.imwrite(mask_filename, mask)
-            cv2.imwrite(result_filename, result_bgr)
-
-            print(f"Frame saved as {frame_filename}")
-            print(f"Mask saved as {mask_filename}")
-            print(f"Result saved as {result_filename}")
-
-        prev_tick = current_tick
-
-    except cv2.error as e:
-        logging.error(f"OpenCV error during processing: {str(e)}")
-        print("Error: An error occurred during video processing. Check the log file for details.")
-        break
-    except Exception as e:
-        logging.error(f"Unexpected error during processing: {str(e)}")
-        print("Error: An unexpected error occurred during video processing. Check the log file for details.")
-        break
-
-# Release resources
-cap.release()
-out.release()
-cv2.destroyAllWindows()
+        except Exception as e:
+            logging.error(f"Unexpected error during processing: {str(e)}")
+            print("Error: An unexpected error occurred during video processing. Check the log file for details.")
+            break
+except Exception as e:
+    logging.error(f"Critical error in video processing loop: {str(e)}")
+    # Release resources
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
