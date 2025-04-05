@@ -55,35 +55,40 @@ def load_video(input_source):
     Returns:
         cv2.VideoCapture: OpenCV video capture object.
     """
-    # If input is a file-like object (e.g., from upload)
-    if hasattr(input_source, "read"):
-        temp_file_path = "temp_video.mp4"
-        
-        # Write the uploaded video to a temporary file
-        with open(temp_file_path, "wb") as f:
-            f.write(input_source.read())
+    temp_file_path = None  # Initialize temp file path
 
-        print(f"Loading video from temporary file: {temp_file_path}")
-        cap = cv2.VideoCapture(temp_file_path)
+    try:
+        # If input is a file-like object (e.g., from upload)
+        if hasattr(input_source, "read"):
+            temp_file_path = "temp_video.mp4"
+            
+            # Write the uploaded video to a temporary file
+            with open(temp_file_path, "wb") as f:
+                f.write(input_source.read())
 
-        # Clean up temp file after use
-        if not cap.isOpened():
+            print(f"Loading video from temporary file: {temp_file_path}")
+            cap = cv2.VideoCapture(temp_file_path)
+
+            if not cap.isOpened():
+                raise ValueError("Error: Unable to open video file.")
+            return cap, temp_file_path  # Return the temp file path for cleanup
+
+        # If input is a file path string
+        elif isinstance(input_source, str):
+            input_source = os.path.join("videos", input_source)
+            print(f"Loading video from path: {input_source}")
+            cap = cv2.VideoCapture(input_source)
+
+            if not cap.isOpened():
+                raise ValueError(f"Error: Unable to open video file '{input_source}'.")
+            return cap, None  # No temp file to clean up
+        else:
+            raise TypeError("Invalid input source. Must be a file path or file-like object.")
+    except Exception as e:
+        # Clean up temp file in case of an error
+        if temp_file_path and os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-            raise ValueError("Error: Unable to open video file.")
-        return cap
-
-    # If input is a file path string
-    elif isinstance(input_source, str):
-        input_source = os.path.join("videos", input_source)
-        print(f"Loading video from path: {input_source}")
-        cap = cv2.VideoCapture(input_source)
-
-        if not cap.isOpened():
-            raise ValueError(f"Error: Unable to open video file '{input_source}'.")
-        return cap
-
-    else:
-        raise TypeError("Invalid input source. Must be a file path or file-like object.")
+        raise e
 
 def release_video(cap):
     if cap is not None and cap.isOpened():
@@ -128,9 +133,13 @@ def get_trackbar_values(window_name="Tracking"):
     u_s = cv2.getTrackbarPos("US", window_name)
     u_v = cv2.getTrackbarPos("UV", window_name)
 
-    # Ensure lower bound is never greater than upper bound
-    lower_bound = np.array([min(l_h, u_h), min(l_s, u_s), min(l_v, u_v)])
-    upper_bound = np.array([max(l_h, u_h), max(l_s, u_s), max(l_v, u_v)])
+    # Ensure lower ≤ upper for all HSV components
+    l_h, u_h = min(l_h, u_h), max(l_h, u_h)
+    l_s, u_s = min(l_s, u_s), max(l_s, u_s)
+    l_v, u_v = min(l_v, u_v), max(l_v, u_v)
+
+    lower_bound = np.array([l_h, l_s, l_v])
+    upper_bound = np.array([u_h, u_s, u_v])
 
     return lower_bound, upper_bound
 

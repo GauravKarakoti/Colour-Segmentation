@@ -76,7 +76,7 @@ if not ret:
 height, width = frame.shape[:2]
 frame_height, frame_width = 512, 512
 
-# --- Dynamic Codec Selection with Better Handling ---
+# --- Dynamic Codec Selection with Fallback Mechanism ---
 output_ext = output_path.split('.')[-1].lower()
 
 # Define codec mapping dictionary for better flexibility
@@ -98,6 +98,18 @@ else:
     print(f"Unsupported format: .{output_ext}. Defaulting to AVI.")
     fourcc, output_path = 'XVID', output_path.rsplit('.', 1)[0] + '.avi'
 
+# Test codec availability
+try:
+    test_writer = cv2.VideoWriter('test.avi', cv2.VideoWriter_fourcc(*fourcc), fps, (100, 100))
+    if not test_writer.isOpened():
+        raise ValueError(f"Codec '{fourcc}' is not supported on this system.")
+    test_writer.release()
+except Exception as e:
+    print(f"Warning: Codec '{fourcc}' is unavailable. Falling back to 'XVID'.")
+    fourcc = 'XVID'
+    output_path = output_path.rsplit('.', 1)[0] + '.avi'
+
+# Initialize the video writer
 out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*fourcc), fps, (frame_width * 3, frame_height))
 frame_delay = 1 / fps  # Control FPS
 
