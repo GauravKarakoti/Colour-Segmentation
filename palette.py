@@ -2,9 +2,7 @@ import cv2
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog, messagebox
-import time
 import queue
-import threading
 
 def nothing(x):
     pass
@@ -56,22 +54,33 @@ def draw_text_with_semi_transparent_bg(img, text, position, font_scale=0.7, colo
     cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness)
 
 def display_hsv_palette(img, l_h, l_s, l_v, u_h, u_s, u_v):
+    blended_s = (l_s + u_s) // 2
+    blended_v = (l_v + u_v) // 2
+
+    height, width = img.shape[:2]
+
     if l_h > u_h:  # Handle Hue wrap-around
+        gradient = np.zeros((height, width, 3), dtype=np.uint8)
+        half_width = width // 2
+        for i in range(half_width):
+            hue = int(l_h + (179 - l_h) * (i / half_width))
+            gradient[:, i, :] = (hue, blended_s, blended_v)
+        for i in range(half_width, width):
+            hue = int((u_h) * ((i - half_width) / (width - half_width)))
+            gradient[:, i, :] = (hue, blended_s, blended_v)
+        bgr_color = cv2.cvtColor(gradient, cv2.COLOR_HSV2BGR)
+        img[:] = bgr_color
+
         hue_range = list(range(l_h, 180)) + list(range(0, u_h + 1))
         mid_hue = hue_range[len(hue_range) // 2]
     else:
         mid_hue = (l_h + u_h) // 2
-
+        hsv_color = np.full((height, width, 3), (mid_hue, blended_s, blended_v), dtype=np.uint8)
+        bgr_color = cv2.cvtColor(hsv_color, cv2.COLOR_HSV2BGR)
+        img[:] = bgr_color
     # Blend lower and upper HSV values
-    blended_s = (l_s + u_s) // 2
-    blended_v = (l_v + u_v) // 2
     
-    # Create an HSV image and convert it to BGR
-    hsv_color = np.full((300, 900, 3), (mid_hue, blended_s, blended_v), dtype=np.uint8)
-    bgr_color = cv2.cvtColor(hsv_color, cv2.COLOR_HSV2BGR)
-
     # Update the image with the corrected BGR color
-    img[:] = bgr_color
     text_color = (255, 255, 255) if blended_v < 128 else (0, 0, 0)
     draw_text_with_semi_transparent_bg(img, f"LH={l_h}, LS={l_s}, LV={l_v}", (20, 50), color=text_color)
     draw_text_with_semi_transparent_bg(img, f"UH={u_h}, US={u_s}, UV={u_v}", (20, 90), color=text_color)
@@ -136,7 +145,7 @@ def rgb_input_window():
 
     dialog_root.mainloop()
 def start_rgb_window():
-    threading.Thread(target=rgb_input_window, daemon=True).start()
+    rgb_input_window()
 
 hsv_queue = queue.Queue()
 def hsv_input_window():
@@ -186,7 +195,7 @@ def hsv_input_window():
     dialog_root.mainloop()
 
 def start_hsv_window():
-    threading.Thread(target=hsv_input_window, daemon=True).start()
+    hsv_input_window()
 
 def default_hsv():
     return (0, 50, 50), (179, 255, 255)
