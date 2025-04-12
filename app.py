@@ -254,50 +254,60 @@ elif nav_option == "Segmentation":
                         temp_video_file.write(uploaded_file.read())
                         temp_video_filename = temp_video_file.name
 
-                    # Load and display the video
-                    video = load_video(temp_video_filename)
+                    # Ensure the temporary file is closed before processing
+                    temp_video_file.close()
 
-                    st.video(temp_video_filename)
+                    try:
+                        # Load and display the video
+                        video = load_video(temp_video_filename)
 
-                    # HSV sliders for video segmentation
-                    st.sidebar.header("HSV Segmentation Parameters")
-                    st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
+                        st.video(temp_video_filename)
 
-                    col1, col2 = st.sidebar.columns(2)
-                    with col1:
-                        lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
-                        lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
-                        lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
-                    with col2:
-                        upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
-                        upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
-                        upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
-                    
-                    # Add kernel size slider
-                    kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-                    kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+                        # HSV sliders for video segmentation
+                        st.sidebar.header("HSV Segmentation Parameters")
+                        st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
 
-                    # Process video frame by frame (simplified for demonstration)
-                    if 'frame_index' not in st.session_state:
-                        st.session_state.frame_index = 0
+                        col1, col2 = st.sidebar.columns(2)
+                        with col1:
+                            lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
+                            lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
+                            lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
+                        with col2:
+                            upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
+                            upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
+                            upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
 
-                    ret, frame = video.read()
-                    if ret:
-                        lower_bound = np.array([lower_h, lower_s, lower_v])
-                        upper_bound = np.array([upper_h, upper_s, upper_v])
-                        mask, result = apply_mask(frame, lower_bound, upper_bound)
+                        # Add kernel size slider
+                        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+                        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
 
-                        # Apply morphological operations
-                        kernel = np.ones((kernel_size, kernel_size), np.uint8)
-                        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+                        # Process video frame by frame (simplified for demonstration)
+                        if 'frame_index' not in st.session_state:
+                            st.session_state.frame_index = 0
 
-                        # Display results
-                        st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
-                        st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+                        ret, frame = video.read()
+                        if ret:
+                            lower_bound = np.array([lower_h, lower_s, lower_v])
+                            upper_bound = np.array([upper_h, upper_s, upper_v])
+                            mask, result = apply_mask(frame, lower_bound, upper_bound)
 
-                    # Clean up the temporary file after processing
-                    import os
-                    os.remove(temp_video_filename)
+                            # Apply morphological operations
+                            kernel = np.ones((kernel_size, kernel_size), np.uint8)
+                            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+
+                            # Display results
+                            st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
+                            st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+
+                    except Exception as e:
+                        st.error(f"An error occurred while processing the video: {e}")
+                    finally:
+                        # Release the video capture object and clean up the temporary file
+                        if video is not None:
+                            video.release()
+                        import os
+                        if os.path.exists(temp_video_filename):
+                            os.remove(temp_video_filename)
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {e}")
