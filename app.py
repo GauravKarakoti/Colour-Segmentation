@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image  # For image validation
 import mimetypes  # For video MIME type validation
 from segmentation_utils import load_image, load_video, apply_mask, resize_with_aspect_ratio
+import tempfile  # Add this import for creating temporary files
 
 # Streamlit app title
 st.markdown("<h1 style='text-align: center; color: #2E7D32; font-size: 4em; margin-bottom: 20px; transition: color 0.3s, transform 0.3s; text-transform: uppercase;'>Image & Video Segmentation with Color Palette</h1>", unsafe_allow_html=True)
@@ -234,10 +235,15 @@ elif nav_option == "Segmentation":
                 if not is_valid_video(uploaded_file):
                     st.error("Invalid video file. Please upload a valid video.")
                 else:
-                    # Load and display the video
-                    video = load_video(uploaded_file)  # Use the uploaded file object directly
+                    # Save the uploaded video to a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video_file:
+                        temp_video_file.write(uploaded_file.read())
+                        temp_video_filename = temp_video_file.name
 
-                    st.video(uploaded_file)
+                    # Load and display the video
+                    video = load_video(temp_video_filename)
+
+                    st.video(temp_video_filename)
 
                     # HSV sliders for video segmentation
                     st.sidebar.header("HSV Segmentation Parameters")
@@ -275,6 +281,10 @@ elif nav_option == "Segmentation":
                         # Display results
                         st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
                         st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+
+                    # Clean up the temporary file after processing
+                    import os
+                    os.remove(temp_video_filename)
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {e}")
