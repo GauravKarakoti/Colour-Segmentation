@@ -4,6 +4,6 @@ streamlit==1.35.0
 argparse
 logging
 opencv-python
-rich==14.0.0
+rich==10.14.0
 markdown-it-py==3.0.0
 pygments==2.19.1
