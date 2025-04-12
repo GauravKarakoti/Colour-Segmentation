@@ -154,7 +154,7 @@ elif nav_option == "Color Palette":
     # Display Colors
     if l_h > u_h:  # Handle Hue wrap-around
         hue_range = list(range(l_h, 180)) + list(range(0, u_h + 1))
-        mid_hue = hue_range[len(hue_range) // 2]
+        mid_hue = (l_h + (u_h + 180)) // 2 % 180  # Correct midpoint calculation for wrap-around
     else:
         mid_hue = (l_h + u_h) // 2
 
