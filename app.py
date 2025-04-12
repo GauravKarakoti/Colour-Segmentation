@@ -237,12 +237,27 @@ elif nav_option == "Segmentation":
 
                         # Save results
                         if st.button("Save Results", key="save_results", help="Click to save the segmented results."):
-                            st.success("Results have been saved successfully!")
                             mask_filename = "mask.png"
                             result_filename = "result.png"
                             cv2.imwrite(mask_filename, mask)
                             cv2.imwrite(result_filename, result)
                             st.success(f"Results saved as {mask_filename} and {result_filename}")
+
+                            # Add download buttons for the results
+                            with open(mask_filename, "rb") as mask_file:
+                                st.download_button(
+                                    label="Download Mask",
+                                    data=mask_file,
+                                    file_name=mask_filename,
+                                    mime="image/png"
+                                )
+                            with open(result_filename, "rb") as result_file:
+                                st.download_button(
+                                    label="Download Segmented Result",
+                                    data=result_file,
+                                    file_name=result_filename,
+                                    mime="image/png"
+                                )
                 except Exception as e:
                     st.error(f"An unexpected error occurred while processing the image: {e}")
 
