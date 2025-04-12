@@ -9,7 +9,7 @@ import tempfile  # Add this import for creating temporary files
 # Streamlit app title
 st.markdown("<h1 style='text-align: center; color: #2E7D32; font-size: 4em; margin-bottom: 20px; transition: color 0.3s, transform 0.3s; text-transform: uppercase;'>Image & Video Segmentation with Color Palette</h1>", unsafe_allow_html=True)
 
-nav_option = st.sidebar.radio("Navigation", ["Home","Color Palette", "Segmentation"])
+nav_option = st.sidebar.radio("Navigation", ["Home", "Upload", "Color Palette", "Segmentation"])
 
 # Load custom CSS
 st.markdown("""
@@ -131,6 +131,7 @@ elif nav_option == "Upload":
     uploaded_file = st.file_uploader("Choose a file...", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'])
     
     if uploaded_file:
+        st.session_state['uploaded_file'] = uploaded_file  # Save the uploaded file in session state
         st.success("File uploaded successfully!")
 
 elif nav_option == "Color Palette":
@@ -177,9 +178,14 @@ elif nav_option == "Color Palette":
         st.success(f"Palettes saved as `{hsv_filename}` and `{rgb_filename}`!")
 
 elif nav_option == "Segmentation":
-    uploaded_file = st.file_uploader("Choose an image or video...", type=['jpg', 'jpeg', 'png', 'mp4', 'avi'], label_visibility="collapsed")
-    if uploaded_file is not None:
+    uploaded_file = st.session_state.get('uploaded_file')  # Retrieve the uploaded file from session state
+    if uploaded_file is None:
+        st.warning("Please upload a file in the 'Upload' section first.")
+    else:
         try:
+            # Reset file pointer to the beginning
+            uploaded_file.seek(0)
+
             # Check if the uploaded file is an image or video
             if uploaded_file.type.startswith('image'):
                 try:
@@ -266,7 +272,6 @@ elif nav_option == "Segmentation":
                     # Add kernel size slider
                     kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
                     kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
-
 
                     # Process video frame by frame (simplified for demonstration)
                     if 'frame_index' not in st.session_state:
