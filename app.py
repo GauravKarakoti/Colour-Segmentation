@@ -5,6 +5,7 @@ from PIL import Image  # For image validation
 import mimetypes  # For video MIME type validation
 from segmentation_utils import load_image, load_video, apply_mask, resize_with_aspect_ratio
 import tempfile  # Add this import for creating temporary files
+import os  # For file operations
 
 # Streamlit app title
 st.markdown("<h1 style='text-align: center; color: #2E7D32; font-size: 4em; margin-bottom: 20px; transition: color 0.3s, transform 0.3s; text-transform: uppercase;'>Image & Video Segmentation with Color Palette</h1>", unsafe_allow_html=True)
@@ -285,19 +286,37 @@ elif nav_option == "Segmentation":
                         if 'frame_index' not in st.session_state:
                             st.session_state.frame_index = 0
 
+                        # Check codec availability
+                        codec = cv2.VideoWriter_fourcc(*'mp4v')
+                        test_output = "test_output.mp4"
+                        try:
+                            test_writer = cv2.VideoWriter(test_output, codec, 30, (640, 480))
+                            if not test_writer.isOpened():
+                                raise ValueError("Codec 'mp4v' is not available on this system.")
+                            test_writer.release()
+                            if os.path.exists(test_output):
+                                os.remove(test_output)
+                        except Exception as e:
+                            st.error(f"Video writing is not supported due to codec issues: {e}")
+                            raise
+
                         ret, frame = video.read()
                         if ret:
                             lower_bound = np.array([lower_h, lower_s, lower_v])
                             upper_bound = np.array([upper_h, upper_s, upper_v])
                             mask, result = apply_mask(frame, lower_bound, upper_bound)
 
-                            # Apply morphological operations
-                            kernel = np.ones((kernel_size, kernel_size), np.uint8)
-                            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+                            # Check if the mask is completely blank
+                            if not np.any(mask):
+                                st.warning("The segmentation mask is blank. Adjust the HSV parameters to include some values.")
+                            else:
+                                # Apply morphological operations
+                                kernel = np.ones((kernel_size, kernel_size), np.uint8)
+                                result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
-                            # Display results
-                            st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
-                            st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+                                # Display results
+                                st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
+                                st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
 
                     except Exception as e:
                         st.error(f"An error occurred while processing the video: {e}")
@@ -305,7 +324,6 @@ elif nav_option == "Segmentation":
                         # Release the video capture object and clean up the temporary file
                         if video is not None:
                             video.release()
-                        import os
                         if os.path.exists(temp_video_filename):
                             os.remove(temp_video_filename)
 
