@@ -259,64 +259,52 @@ elif nav_option == "Segmentation":
                     temp_video_file.close()
 
                     try:
-                        # Load and display the video
-                        video = load_video(temp_video_filename)
+                        # Load the video
+                        video = cv2.VideoCapture(temp_video_filename)
+                        frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+                        fps = int(video.get(cv2.CAP_PROP_FPS))
 
-                        st.video(temp_video_filename)
+                        # Slider to control video playback
+                        frame_index = st.slider("Frame", 0, frame_count - 1, 0, help="Use this slider to navigate through the video.")
 
-                        # HSV sliders for video segmentation
-                        st.sidebar.header("HSV Segmentation Parameters")
-                        st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
-
-                        col1, col2 = st.sidebar.columns(2)
-                        with col1:
-                            lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
-                            lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
-                            lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
-                        with col2:
-                            upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
-                            upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
-                            upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
-
-                        # Add kernel size slider
-                        kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-                        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
-
-                        # Process video frame by frame (simplified for demonstration)
-                        if 'frame_index' not in st.session_state:
-                            st.session_state.frame_index = 0
-
-                        # Check codec availability
-                        codec = cv2.VideoWriter_fourcc(*'mp4v')
-                        test_output = "test_output.mp4"
-                        try:
-                            test_writer = cv2.VideoWriter(test_output, codec, 30, (640, 480))
-                            if not test_writer.isOpened():
-                                raise ValueError("Codec 'mp4v' is not available on this system.")
-                            test_writer.release()
-                            if os.path.exists(test_output):
-                                os.remove(test_output)
-                        except Exception as e:
-                            st.error(f"Video writing is not supported due to codec issues: {e}")
-                            raise
-
+                        # Set the video to the selected frame
+                        video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
                         ret, frame = video.read()
+
                         if ret:
+                            # Display the original frame
+                            st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption='Original Video Frame', use_container_width=True)
+
+                            # HSV sliders for segmentation
+                            st.sidebar.header("HSV Segmentation Parameters")
+                            st.sidebar.markdown("Adjust the sliders below to set the HSV segmentation parameters.", unsafe_allow_html=True)
+
+                            col1, col2 = st.sidebar.columns(2)
+                            with col1:
+                                lower_h = st.slider("Lower Hue", 0, 179, 0, help="Set the lower bound for hue.")
+                                lower_s = st.slider("Lower Saturation", 0, 255, 50, help="Set the lower bound for saturation.")
+                                lower_v = st.slider("Lower Value", 0, 255, 50, help="Set the lower bound for value.")
+                            with col2:
+                                upper_h = st.slider("Upper Hue", 0, 179, 179, help="Set the upper bound for hue.")
+                                upper_s = st.slider("Upper Saturation", 0, 255, 255, help="Set the upper bound for saturation.")
+                                upper_v = st.slider("Upper Value", 0, 255, 255, help="Set the upper bound for value.")
+
+                            # Add kernel size slider
+                            kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
+                            kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+
+                            # Apply mask
                             lower_bound = np.array([lower_h, lower_s, lower_v])
                             upper_bound = np.array([upper_h, upper_s, upper_v])
                             mask, result = apply_mask(frame, lower_bound, upper_bound)
 
-                            # Check if the mask is completely blank
-                            if not np.any(mask):
-                                st.warning("The segmentation mask is blank. Adjust the HSV parameters to include some values.")
-                            else:
-                                # Apply morphological operations
-                                kernel = np.ones((kernel_size, kernel_size), np.uint8)
-                                result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+                            # Apply morphological operations
+                            kernel = np.ones((kernel_size, kernel_size), np.uint8)
+                            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
-                                # Display results
-                                st.image(mask, caption='Mask Frame', use_container_width=True)  # Display mask frame
-                                st.image(result, caption='Segmented Video Frame', use_container_width=True)  # Display segmented result
+                            # Display synchronized frames
+                            st.image(mask, caption='Mask Frame', use_container_width=True)
+                            st.image(result, caption='Segmented Video Frame', use_container_width=True)
 
                     except Exception as e:
                         st.error(f"An error occurred while processing the video: {e}")
@@ -325,7 +313,7 @@ elif nav_option == "Segmentation":
                         if video is not None:
                             video.release()
                         if os.path.exists(temp_video_filename):
-                            os.remove(temp_video_filename)
+                            os.remove(temp_video_filename)  # Ensure temporary file is deleted
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {e}")
