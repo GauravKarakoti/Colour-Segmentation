@@ -222,6 +222,10 @@ elif nav_option == "Segmentation":
                         upper_bound = np.array([upper_h, upper_s, upper_v])
                         mask, result = apply_mask(image, lower_bound, upper_bound)
 
+                        # Check if the mask is empty
+                        if not np.any(mask):
+                            st.warning("The segmentation mask is empty. Try adjusting the HSV parameters.")
+
                         # Apply morphological operations
                         kernel = np.ones((kernel_size, kernel_size), np.uint8)
                         result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
