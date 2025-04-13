@@ -63,9 +63,10 @@ def prompt_filename(title, default_name, filetypes):
     root = tk.Tk()
     root.withdraw()  
 
-    root.attributes('-topmost', True)  
-    root.lift()  
-    root.after(100,lambda: root.focus_force())
+    cv2.setWindowProperty("Tracking",cv2.WND_PROP_TOPMOST,0)
+    cv2.setWindowProperty("Original",cv2.WND_PROP_TOPMOST,0)
+    cv2.setWindowProperty("Mask",cv2.WND_PROP_TOPMOST,0)
+    cv2.setWindowProperty("Result",cv2.WND_PROP_TOPMOST,0)
 
     filename = simpledialog.askstring(
         title, f"Enter filename for {title} (without extension):", initialvalue=default_name
@@ -75,6 +76,10 @@ def prompt_filename(title, default_name, filetypes):
         print(f"Operation canceled. Using default filename: {default_name}")
         filename = default_name
 
+    cv2.setWindowProperty("Tracking",cv2.WND_PROP_TOPMOST,1)
+    cv2.setWindowProperty("Original",cv2.WND_PROP_TOPMOST,1)
+    cv2.setWindowProperty("Mask",cv2.WND_PROP_TOPMOST,1)
+    cv2.setWindowProperty("Result",cv2.WND_PROP_TOPMOST,1)
     root.destroy()  
     return filename
 
