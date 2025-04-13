@@ -198,7 +198,7 @@ elif nav_option == "Segmentation":
                         st.error("Failed to load the image. The file might be corrupted or not a valid image format.")
                     else:
                         # Convert to RGB for Streamlit display
-                        st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', use_container_width=True, clamp=True)
+                        st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', clamp=True)
                         st.markdown("<p style='text-align: center;'>This is the uploaded image.</p>", unsafe_allow_html=True)
 
                         # HSV sliders for segmentation
@@ -234,8 +234,8 @@ elif nav_option == "Segmentation":
                         result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
                         # Display results
-                        st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask', use_container_width=True)  # Convert single-channel mask to RGB
-                        st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Result', use_container_width=True)  # Ensure result is in RGB
+                        st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask')  # Convert single-channel mask to RGB
+                        st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Result')  # Ensure result is in RGB
 
                         # Save results
                         save_dir = st.text_input("Enter the directory to save results:", value=os.getcwd(), help="Specify the directory where results will be saved.")
@@ -300,7 +300,7 @@ elif nav_option == "Segmentation":
                                 raise ValueError("Failed to read the selected frame from the video.")
 
                             # Display the original frame
-                            st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption='Original Video Frame', use_container_width=True)
+                            st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption='Original Video Frame')
 
                             # HSV sliders for segmentation
                             st.sidebar.header("HSV Segmentation Parameters")
@@ -331,8 +331,8 @@ elif nav_option == "Segmentation":
                             result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
                             # Display synchronized frames
-                            st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask Frame', use_container_width=True)  # Convert single-channel mask to RGB
-                            st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Video Frame', use_container_width=True)  # Ensure result is in RGB
+                            st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask Frame')  # Convert single-channel mask to RGB
+                            st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Video Frame')  # Ensure result is in RGB
 
                             # Save results for video frame
                             save_dir = st.text_input("Enter the directory to save frame results:", value=os.getcwd(), help="Specify the directory where frame results will be saved.")
