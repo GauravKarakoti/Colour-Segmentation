@@ -217,7 +217,8 @@ elif nav_option == "Segmentation":
 
                         # Add kernel size slider
                         kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-                        kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+                        if kernel_size % 2 == 0:  # Ensure kernel size is odd
+                            kernel_size += 1  # Increment to make it odd
 
                         # Apply mask (ensure image is in BGR format as required by segmentation_utils)
                         lower_bound = np.array([lower_h, lower_s, lower_v])
@@ -233,8 +234,8 @@ elif nav_option == "Segmentation":
                         result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
                         # Display results
-                        st.image(mask, caption='Mask')
-                        st.image(result, caption='Segmented Result')
+                        st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask')  # Convert single-channel mask to RGB
+                        st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Result')  # Ensure result is in RGB
 
                         # Save results
                         save_dir = st.text_input("Enter the directory to save results:", value=os.getcwd(), help="Specify the directory where results will be saved.")
@@ -270,28 +271,34 @@ elif nav_option == "Segmentation":
                 if not is_valid_video(uploaded_file):
                     st.error("Invalid video file. Please upload a valid video.")
                 else:
-                    # Save the uploaded video to a temporary file
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video_file:
-                        temp_video_file.write(uploaded_file.read())
-                        temp_video_filename = temp_video_file.name
-
-                    # Ensure the temporary file is closed before processing
-                    temp_video_file.close()
-
                     try:
-                        # Load the video
-                        video = cv2.VideoCapture(temp_video_filename)
-                        frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-                        fps = int(video.get(cv2.CAP_PROP_FPS))
+                        # Save the uploaded video to a temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video_file:
+                            temp_video_file.write(uploaded_file.read())
+                            temp_video_filename = temp_video_file.name
 
-                        # Slider to control video playback
-                        frame_index = st.slider("Frame", 0, frame_count - 1, 0, help="Use this slider to navigate through the video.")
+                        # Ensure the temporary file is closed before processing
+                        temp_video_file.close()
 
-                        # Set the video to the selected frame
-                        video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-                        ret, frame = video.read()
+                        try:
+                            # Load the video
+                            video = cv2.VideoCapture(temp_video_filename)
+                            if not video.isOpened():
+                                raise ValueError("Failed to open the video file.")
 
-                        if ret:
+                            frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+                            fps = int(video.get(cv2.CAP_PROP_FPS))
+
+                            # Slider to control video playback
+                            frame_index = st.slider("Frame", 0, frame_count - 1, 0, help="Use this slider to navigate through the video.")
+
+                            # Set the video to the selected frame
+                            video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+                            ret, frame = video.read()
+
+                            if not ret:
+                                raise ValueError("Failed to read the selected frame from the video.")
+
                             # Display the original frame
                             st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption='Original Video Frame')
 
@@ -311,7 +318,8 @@ elif nav_option == "Segmentation":
 
                             # Add kernel size slider
                             kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
-                            kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
+                            if kernel_size % 2 == 0:  # Ensure kernel size is odd
+                                kernel_size += 1  # Increment to make it odd
 
                             # Apply mask
                             lower_bound = np.array([lower_h, lower_s, lower_v])
@@ -323,17 +331,48 @@ elif nav_option == "Segmentation":
                             result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
 
                             # Display synchronized frames
-                            st.image(mask, caption='Mask Frame')
-                            st.image(result, caption='Segmented Video Frame')
+                            st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask Frame')  # Convert single-channel mask to RGB
+                            st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Video Frame')  # Ensure result is in RGB
+
+                            # Save results for video frame
+                            save_dir = st.text_input("Enter the directory to save frame results:", value=os.getcwd(), help="Specify the directory where frame results will be saved.")
+                            if st.button("Save Frame Results", key="save_frame_results", help="Click to save the segmented frame results."):
+                                if save_dir and os.path.isdir(save_dir):
+                                    mask_frame_filename = os.path.join(save_dir, f"mask_frame_{frame_index}.png")
+                                    result_frame_filename = os.path.join(save_dir, f"result_frame_{frame_index}.png")
+                                    cv2.imwrite(mask_frame_filename, mask)
+                                    cv2.imwrite(result_frame_filename, result)
+                                    st.success(f"Frame results saved as {mask_frame_filename} and {result_frame_filename}")
+
+                                    # Add download buttons for the frame results
+                                    with open(mask_frame_filename, "rb") as mask_frame_file:
+                                        st.download_button(
+                                            label="Download Mask Frame",
+                                            data=mask_frame_file,
+                                            file_name=f"mask_frame_{frame_index}.png",
+                                            mime="image/png"
+                                        )
+                                    with open(result_frame_filename, "rb") as result_frame_file:
+                                        st.download_button(
+                                            label="Download Segmented Frame Result",
+                                            data=result_frame_file,
+                                            file_name=f"result_frame_{frame_index}.png",
+                                            mime="image/png"
+                                        )
+                                else:
+                                    st.error("Invalid directory. Please specify a valid save location.")
+
+                        except Exception as e:
+                            st.error(f"An error occurred while processing the video: {e}")
+                        finally:
+                            # Release the video capture object and clean up the temporary file
+                            if video is not None:
+                                video.release()
+                            if os.path.exists(temp_video_filename):
+                                os.remove(temp_video_filename)  # Ensure temporary file is deleted
 
                     except Exception as e:
-                        st.error(f"An error occurred while processing the video: {e}")
-                    finally:
-                        # Release the video capture object and clean up the temporary file
-                        if video is not None:
-                            video.release()
-                        if os.path.exists(temp_video_filename):
-                            os.remove(temp_video_filename)  # Ensure temporary file is deleted
+                        st.error(f"An error occurred while saving or accessing the video file: {e}")
 
         except Exception as e:
             st.error(f"An error occurred while processing the file: {e}")
