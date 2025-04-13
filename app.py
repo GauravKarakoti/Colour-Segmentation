@@ -197,6 +197,7 @@ elif nav_option == "Segmentation":
                     if image is None:  # Check if the image is empty
                         st.error("Failed to load the image. The file might be corrupted or not a valid image format.")
                     else:
+                        # Convert to RGB for Streamlit display
                         st.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption='Uploaded Image', use_container_width=True, clamp=True)
                         st.markdown("<p style='text-align: center;'>This is the uploaded image.</p>", unsafe_allow_html=True)
 
@@ -218,7 +219,7 @@ elif nav_option == "Segmentation":
                         kernel_size = st.sidebar.slider("Kernel Size", 1, 30, 5, step=2, help="Set the kernel size (odd values only).")
                         kernel_size = max(1, kernel_size if kernel_size % 2 == 1 else kernel_size + 1)  # Ensure odd kernel size
 
-                        # Apply mask
+                        # Apply mask (ensure image is in BGR format as required by segmentation_utils)
                         lower_bound = np.array([lower_h, lower_s, lower_v])
                         upper_bound = np.array([upper_h, upper_s, upper_v])
                         mask, result = apply_mask(image, lower_bound, upper_bound)

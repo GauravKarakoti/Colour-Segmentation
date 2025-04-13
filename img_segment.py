@@ -182,11 +182,11 @@ while True:
 
         # Save only if filenames are provided
         if mask_filename and result_filename:
-            # Convert result to BGR before saving
-            result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
-
+            # Save mask as is
             cv2.imwrite(mask_filename, mask)
-            cv2.imwrite(result_filename, result_bgr)
+
+            # Save result (already in BGR format if apply_mask was used correctly)
+            cv2.imwrite(result_filename, result)
 
             print(f"Mask saved as {mask_filename}")
             print(f"Result saved as {result_filename}")
