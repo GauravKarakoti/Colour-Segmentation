@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+import tempfile  # Added for unique temporary file handling
 
 def nothing(x):
     pass
@@ -53,11 +54,14 @@ def load_video(input_source):
         input_source (str or file-like object): File path or uploaded file.
 
     Returns:
-        cv2.VideoCapture: OpenCV video capture object.
+        Tuple[cv2.VideoCapture, str]: OpenCV video capture object and temporary file path (if applicable).
     """
+    temp_file_path = None  # Initialize temp file path
+
     # If input is a file-like object (e.g., from upload)
     if hasattr(input_source, "read"):
-        temp_file_path = "temp_video.mp4"
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        temp_file_path = temp_file.name
         
         # Write the uploaded video to a temporary file
         with open(temp_file_path, "wb") as f:
@@ -66,11 +70,10 @@ def load_video(input_source):
         print(f"Loading video from temporary file: {temp_file_path}")
         cap = cv2.VideoCapture(temp_file_path)
 
-        # Clean up temp file after use
         if not cap.isOpened():
             os.remove(temp_file_path)
             raise ValueError("Error: Unable to open video file.")
-        return cap
+        return cap, temp_file_path
 
     # If input is a file path string
     elif isinstance(input_source, str):
@@ -80,14 +83,24 @@ def load_video(input_source):
 
         if not cap.isOpened():
             raise ValueError(f"Error: Unable to open video file '{input_source}'.")
-        return cap
+        return cap, None
 
     else:
         raise TypeError("Invalid input source. Must be a file path or file-like object.")
 
-def release_video(cap):
+def release_video(cap, temp_file_path=None):
+    """
+    Release video capture object and clean up temporary files.
+
+    Args:
+        cap (cv2.VideoCapture): Video capture object to release.
+        temp_file_path (str, optional): Path to temporary file to delete.
+    """
     if cap is not None and cap.isOpened():
         cap.release()
+    if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+        print(f"Temporary file '{temp_file_path}' deleted.")
 
 def create_named_window(window_name, topmost=True):
     try:
