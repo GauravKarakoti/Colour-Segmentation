@@ -141,7 +141,7 @@ def get_trackbar_values(window_name="Tracking"):
 def apply_mask(image, lower, upper, hsv_converted=False, kernel_size=1, apply_morph=True):
     """
     Apply a mask to the image based on the given lower and upper HSV bounds.
-    :param image: Input image (BGR or HSV depending on hsv_converted flag)
+    :param image: Input image (BGR or HSV depending on hsv_converted flag). **Ensure BGR input unless hsv_converted=True.**
     :param lower: Lower HSV bound
     :param upper: Upper HSV bound
     :param hsv_converted: Boolean indicating if the image is already in HSV
