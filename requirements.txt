@@ -7,3 +7,7 @@ opencv-python
 rich==10.14.0
 markdown-it-py==3.0.0
 pygments==2.19.1
+pillow
+mimetypes
+tempfile
+queue
