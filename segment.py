@@ -68,10 +68,6 @@ def prompt_filename(title, default_name, filetypes):
     cv2.setWindowProperty("Mask",cv2.WND_PROP_TOPMOST,0)
     cv2.setWindowProperty("Result",cv2.WND_PROP_TOPMOST,0)
 
-    root.attributes('-topmost', True)  
-    root.lift()  
-    root.after(100,lambda: root.focus_force())
-
     filename = simpledialog.askstring(
         title, f"Enter filename for {title} (without extension):", initialvalue=default_name
     )
