@@ -182,8 +182,8 @@ try:
             # Display the mask and result side by side in the "Tracking" window
             display_results(frame=frame, mask=mask, result=result)
 
-            # Convert mask to 3-channel image for saving
-            mask_3ch = cv2.applyColorMap(mask, cv2.COLOR_GRAY2BGR)
+            # Convert mask to 3-channel image for saving (remove color mapping)
+            mask_3ch = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)  # Convert grayscale mask to 3-channel without color mapping
             
             # Combine results into a single frame
             combined_output = np.hstack((frame, mask_3ch, result))
