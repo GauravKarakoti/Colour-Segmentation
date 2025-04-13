@@ -334,6 +334,34 @@ elif nav_option == "Segmentation":
                             st.image(cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB), caption='Mask Frame', use_container_width=True)  # Convert single-channel mask to RGB
                             st.image(cv2.cvtColor(result, cv2.COLOR_BGR2RGB), caption='Segmented Video Frame', use_container_width=True)  # Ensure result is in RGB
 
+                            # Save results for video frame
+                            save_dir = st.text_input("Enter the directory to save frame results:", value=os.getcwd(), help="Specify the directory where frame results will be saved.")
+                            if st.button("Save Frame Results", key="save_frame_results", help="Click to save the segmented frame results."):
+                                if save_dir and os.path.isdir(save_dir):
+                                    mask_frame_filename = os.path.join(save_dir, f"mask_frame_{frame_index}.png")
+                                    result_frame_filename = os.path.join(save_dir, f"result_frame_{frame_index}.png")
+                                    cv2.imwrite(mask_frame_filename, mask)
+                                    cv2.imwrite(result_frame_filename, result)
+                                    st.success(f"Frame results saved as {mask_frame_filename} and {result_frame_filename}")
+
+                                    # Add download buttons for the frame results
+                                    with open(mask_frame_filename, "rb") as mask_frame_file:
+                                        st.download_button(
+                                            label="Download Mask Frame",
+                                            data=mask_frame_file,
+                                            file_name=f"mask_frame_{frame_index}.png",
+                                            mime="image/png"
+                                        )
+                                    with open(result_frame_filename, "rb") as result_frame_file:
+                                        st.download_button(
+                                            label="Download Segmented Frame Result",
+                                            data=result_frame_file,
+                                            file_name=f"result_frame_{frame_index}.png",
+                                            mime="image/png"
+                                        )
+                                else:
+                                    st.error("Invalid directory. Please specify a valid save location.")
+
                         except Exception as e:
                             st.error(f"An error occurred while processing the video: {e}")
                         finally:
