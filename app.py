@@ -237,28 +237,32 @@ elif nav_option == "Segmentation":
                         st.image(result, caption='Segmented Result', use_container_width=True)
 
                         # Save results
+                        save_dir = st.text_input("Enter the directory to save results:", value=os.getcwd(), help="Specify the directory where results will be saved.")
                         if st.button("Save Results", key="save_results", help="Click to save the segmented results."):
-                            mask_filename = "mask.png"
-                            result_filename = "result.png"
-                            cv2.imwrite(mask_filename, mask)
-                            cv2.imwrite(result_filename, result)
-                            st.success(f"Results saved as {mask_filename} and {result_filename}")
+                            if save_dir and os.path.isdir(save_dir):
+                                mask_filename = os.path.join(save_dir, "mask.png")
+                                result_filename = os.path.join(save_dir, "result.png")
+                                cv2.imwrite(mask_filename, mask)
+                                cv2.imwrite(result_filename, result)
+                                st.success(f"Results saved as {mask_filename} and {result_filename}")
 
-                            # Add download buttons for the results
-                            with open(mask_filename, "rb") as mask_file:
-                                st.download_button(
-                                    label="Download Mask",
-                                    data=mask_file,
-                                    file_name=mask_filename,
-                                    mime="image/png"
-                                )
-                            with open(result_filename, "rb") as result_file:
-                                st.download_button(
-                                    label="Download Segmented Result",
-                                    data=result_file,
-                                    file_name=result_filename,
-                                    mime="image/png"
-                                )
+                                # Add download buttons for the results
+                                with open(mask_filename, "rb") as mask_file:
+                                    st.download_button(
+                                        label="Download Mask",
+                                        data=mask_file,
+                                        file_name="mask.png",
+                                        mime="image/png"
+                                    )
+                                with open(result_filename, "rb") as result_file:
+                                    st.download_button(
+                                        label="Download Segmented Result",
+                                        data=result_file,
+                                        file_name="result.png",
+                                        mime="image/png"
+                                    )
+                            else:
+                                st.error("Invalid directory. Please specify a valid save location.")
                 except Exception as e:
                     st.error(f"An unexpected error occurred while processing the image: {e}")
 
