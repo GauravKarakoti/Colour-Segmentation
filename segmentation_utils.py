@@ -128,9 +128,13 @@ def get_trackbar_values(window_name="Tracking"):
     u_s = cv2.getTrackbarPos("US", window_name)
     u_v = cv2.getTrackbarPos("UV", window_name)
 
-    # Ensure lower bound is never greater than upper bound
-    lower_bound = np.array([min(l_h, u_h), min(l_s, u_s), min(l_v, u_v)])
-    upper_bound = np.array([max(l_h, u_h), max(l_s, u_s), max(l_v, u_v)])
+    # Enforce lower ≤ upper for each HSV component
+    l_h, u_h = min(l_h, u_h), max(l_h, u_h)
+    l_s, u_s = min(l_s, u_s), max(l_s, u_s)
+    l_v, u_v = min(l_v, u_v), max(l_v, u_v)
+
+    lower_bound = np.array([l_h, l_s, l_v])
+    upper_bound = np.array([u_h, u_s, u_v])
 
     return lower_bound, upper_bound
 
