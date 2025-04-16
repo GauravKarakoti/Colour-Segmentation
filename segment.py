@@ -26,7 +26,12 @@ fps = validate_numeric_input(fps, 1, 120, 30)
 
 # Load the video
 try:
-    cap = load_video(video_path)
+    video_data = load_video(video_path)
+    if isinstance(video_data, tuple):
+        cap = video_data[0]  # Unpack the first element as the VideoCapture object
+    else:
+        cap = video_data
+
     if not cap.isOpened():
         raise ValueError("Error opening video file.")
 except FileNotFoundError:
