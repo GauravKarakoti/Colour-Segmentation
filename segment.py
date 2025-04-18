@@ -221,15 +221,27 @@ try:
                 else:
                     print("Video resumed.")
             elif key == ord('s'):  # Save current frame, mask, and result
-                frame_filename = prompt_filename("Frame Image", "frame", ["png", "jpg"])
-                mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
-                result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
+                # Define filetypes for each save operation
+                frame_filetypes = ["png", "jpg"]
+                mask_filetypes = ["png", "jpg"]
+                result_filetypes = ["png", "jpg"]
+
+                # Get filenames and append extensions
+                frame_filename = prompt_filename("Frame Image", "segment_frame", frame_filetypes)
+                frame_filename = f"{frame_filename}.{frame_filetypes[0]}"  # Append .png
+
+                mask_filename = prompt_filename("Mask Image", "segment_mask", mask_filetypes)
+                mask_filename = f"{mask_filename}.{mask_filetypes[0]}"  # Append .png
+
+                result_filename = prompt_filename("Result Image", "segment_result", result_filetypes)
+                result_filename = f"{result_filename}.{result_filetypes[0]}"  # Append .png
 
                 # Convert result to BGR before saving
                 result_bgr = cv2.cvtColor(result, cv2.COLOR_HSV2BGR)
 
+                # Save images with correct extensions
                 cv2.imwrite(frame_filename, frame)
-                cv2.imwrite(mask_filename, mask)
+                cv2.imwrite(mask_filename, mask_3ch)
                 cv2.imwrite(result_filename, result_bgr)
 
                 print(f"Frame saved as {frame_filename}")

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image_path = "images\\image7.webp" 
+image_path = input("Enter the image path:") or "default_hsv.png"
 img = cv2.imread(image_path)
 
 if img is None:
@@ -24,7 +24,6 @@ cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 # Save images for further inspection
-cv2.imwrite("original_image.png", img)
 cv2.imwrite("incorrect_hsv_display.png", hsv_img)  # Incorrect display
 cv2.imwrite("corrected_hsv_to_bgr.png", bgr_corrected)  # Corrected version
 

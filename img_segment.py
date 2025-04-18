@@ -177,16 +177,16 @@ while True:
     if key == 27:  # ESC key 
         break
     elif key == ord('s'):  # 's' key to save mask and result
-        mask_filename = prompt_filename("Mask Image", "mask", ["png", "jpg"])
-        result_filename = prompt_filename("Result Image", "result", ["png", "jpg"])
+        mask_filename = prompt_filename("Mask Image", "imgsegment_mask", ["png", "jpg"])
+        result_filename = prompt_filename("Result Image", "imgsegment_result", ["png", "jpg"])
 
         # Save only if filenames are provided
         if mask_filename and result_filename:
             # Save mask as is
-            cv2.imwrite(mask_filename, mask)
+            cv2.imwrite(mask_filename, mask_resized)
 
             # Save result (already in BGR format if apply_mask was used correctly)
-            cv2.imwrite(result_filename, result)
+            cv2.imwrite(result_filename, result_resized)
 
             print(f"Mask saved as {mask_filename}")
             print(f"Result saved as {result_filename}")
